@@ -216,6 +216,20 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-gates-label small { font: 10px var(--mono); text-transform: none; margin-left: 4px; }
 .gate-chip { font: 11px var(--mono); padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
 .gate-chip b { color: var(--text); margin-right: 4px; }
+.dep-jrv { white-space: nowrap; }
+/* JRV hidden: 3 wider columns, larger text */
+.dep-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .dep-grid.three { grid-template-columns: 1fr; } }
+.dep-grid.three .dep-name { font-size: 16px; }
+.dep-grid.three .dep-row { padding: 8px 14px; }
+.dep-grid.three .dep-row.v { grid-template-columns: 64px 1fr; }
+.dep-grid.three .dep-line { grid-template-columns: 1fr 64px; }
+.dep-grid.three .dep-sp { font-size: 16px; }
+.dep-grid.three .dep-routes { font-size: 13px; }
+.dep-grid.three .dep-apt { font-size: 11.5px; }
+.dep-grid.three .dep-rnote { font-size: 11.5px; }
+.dep-grid.three .dep-alt { font-size: 18px; }
+.dep-grid.three .dep-alt small { font-size: 10.5px; }
 .gate-chip i { font-style: normal; color: var(--accent); margin-left: 4px; font-weight: 600; }
 
 /* ---------- ATIS cards ---------- */

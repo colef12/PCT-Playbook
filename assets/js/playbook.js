@@ -69,9 +69,11 @@
      Toggle: VATSIM (vZDC-PCT-P-01G QRG 6-2 + area departure tables) | Real world (65H App. E)
      -------------------------------------------------------------------------- */
   (() => {
-    const order = ["MTV", "SHD", "CHP", "JRV"];
-    let mode = "vatsim";
-    try { mode = localStorage.getItem("pct.dep.mode") || "vatsim"; } catch (_) {}
+    const allAreas = ["MTV", "SHD", "CHP", "JRV"];
+    let order = allAreas;
+    let mode = "vatsim", hideJrv = false;
+    try { mode = localStorage.getItem("pct.dep.mode") || "vatsim"; hideJrv = localStorage.getItem("pct.dep.hideJrv") === "1"; } catch (_) {}
+    $("#dep-hide-jrv").checked = hideJrv;
     const altHtml = (v, to) => {
       const s = String(v ?? "").trim();
       if (!s) return '<span class="dep-alt none">—</span>';
@@ -131,6 +133,8 @@
     }
 
     function render() {
+      order = hideJrv ? allAreas.filter((a) => a !== "JRV") : allAreas;
+      $("#dep-cols").classList.toggle("three", hideJrv);
       $$("#dep-mode .seg").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
       $("#dep-src").textContent = mode === "vatsim" ? "vZDC-PCT-P-01G · QRG 6–2 + area dep tables" : "PCT 7110.65H · App. E";
       $("#dep-cols").innerHTML = mode === "vatsim" ? renderVatsim() : renderReal();
@@ -142,6 +146,11 @@
       $$("#dep-cols .dep-row:not(.dep-th)").forEach((r) => { r.hidden = !!q && !r.dataset.q.includes(q); });
     }
     $("#dep-search").addEventListener("input", filter);
+    $("#dep-hide-jrv").addEventListener("change", (e) => {
+      hideJrv = e.target.checked;
+      try { localStorage.setItem("pct.dep.hideJrv", hideJrv ? "1" : "0"); } catch (_) {}
+      render();
+    });
     $("#dep-mode").addEventListener("click", (e) => {
       const b = e.target.closest("[data-mode]"); if (!b) return;
       mode = b.dataset.mode;
