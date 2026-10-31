@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCT Playbook — Potomac TRACON</title>
+  <meta name="description" content="Working playbook for Potomac TRACON (PCT) on the VATSIM network. Flight simulation use only.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/playbook.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">PCT</span>
+      <div>
+        <div class="brand-title">Potomac TRACON Playbook</div>
+        <div class="brand-sub">vZDC · VATSIM · <span id="version"></span></div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="clock"><span class="clock-label">UTC</span><span id="utc-clock">--:--:--</span></div>
+      <div id="net-status" class="pill pill-idle" title="VATSIM data feed status">VATSIM —</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Sections">
+      <input id="global-search" class="search" type="search" placeholder="Search sector, freq, airport…  ( / )" autocomplete="off">
+      <ul class="nav">
+        <li><a href="#live">Live Network</a></li>
+        <li><a href="#areas">Areas</a></li>
+        <li><a href="#sectors">Sectors &amp; Frequencies</a></li>
+        <li><a href="#combines">Position Combining</a></li>
+        <li><a href="#towers">Tower Frequencies</a></li>
+        <li><a href="#adjacent">Adjacent Facilities</a></li>
+        <li><a href="#procedures">Procedures</a></li>
+        <li><a href="#references">References</a></li>
+      </ul>
+      <div class="sidebar-foot">For flight simulation use only. Not for real-world navigation or ATC.</div>
+    </nav>
+
+    <main class="content">
+
+      <!-- LIVE NETWORK -->
+      <section id="live" class="section">
+        <div class="section-head">
+          <h2>Live Network</h2>
+          <span class="muted" id="live-updated">Waiting for feed…</span>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>PCT &amp; Towers Online</h3>
+            <ul id="live-pct" class="list"><li class="muted">—</li></ul>
+          </div>
+          <div class="card">
+            <h3>Neighbors Online</h3>
+            <ul id="live-neighbors" class="list"><li class="muted">—</li></ul>
+          </div>
+          <div class="card">
+            <h3>Airport Traffic</h3>
+            <table class="tbl tbl-compact">
+              <thead><tr><th>APT</th><th>ATIS</th><th title="Filed departures on the ground">DEP</th><th title="Filed arrivals airborne">ARR</th></tr></thead>
+              <tbody id="live-airports"></tbody>
+            </table>
+          </div>
+        </div>
+        <details class="card atis-card">
+          <summary>ATIS text</summary>
+          <div id="live-atis" class="atis-wrap"><span class="muted">No ATIS online.</span></div>
+        </details>
+      </section>
+
+      <!-- AREAS -->
+      <section id="areas" class="section">
+        <div class="section-head"><h2>Areas of Specialization</h2><span class="muted">65H App. B</span></div>
+        <div id="area-cards" class="grid grid-4"></div>
+      </section>
+
+      <!-- SECTORS -->
+      <section id="sectors" class="section">
+        <div class="section-head">
+          <h2>Sectors &amp; Frequencies</h2>
+          <div class="chips" id="area-filter"></div>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl filterable" id="sector-table">
+            <thead><tr><th>Area</th><th>Sector</th><th>VHF</th><th>UHF</th><th>IA</th><th>Role</th><th>Notes</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small">Source: 65H Appendix J. Role column is a working field — fill it in as you learn each sector.</p>
+      </section>
+
+      <!-- COMBINES -->
+      <section id="combines" class="section">
+        <div class="section-head"><h2>Position Combining</h2><span class="muted">65H Fig. 8-1-1</span></div>
+        <div id="combine-wrap"></div>
+      </section>
+
+      <!-- TOWERS -->
+      <section id="towers" class="section">
+        <div class="section-head"><h2>Tower Frequencies</h2><span class="muted">65H Tables J-6-1 – J-6-4</span></div>
+        <div class="table-wrap">
+          <table class="tbl filterable" id="tower-table">
+            <thead><tr><th>Area</th><th>Facility</th><th>Frequency</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ADJACENT -->
+      <section id="adjacent" class="section">
+        <div class="section-head"><h2>Adjacent Facilities</h2><span class="muted">65H Table J-7-1</span></div>
+        <div class="table-wrap">
+          <table class="tbl filterable" id="adjacent-table">
+            <thead><tr><th>Facility</th><th>Sector</th><th>Frequency</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PROCEDURES -->
+      <section id="procedures" class="section">
+        <div class="section-head"><h2>Procedures — Quick Reference</h2></div>
+        <div id="proc-cards" class="grid grid-2"></div>
+      </section>
+
+      <!-- REFERENCES -->
+      <section id="references" class="section">
+        <div class="section-head"><h2>References</h2></div>
+        <div class="table-wrap">
+          <table class="tbl" id="ref-table">
+            <thead><tr><th>Document</th><th>Type</th><th>Note</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span id="footer-meta"></span>
+        <span>Live data: <a href="https://data.vatsim.net/v3/vatsim-data.json" target="_blank" rel="noopener">VATSIM Data API v3</a></span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="data/pct-data.js"></script>
+  <script src="assets/js/playbook.js"></script>
+</body>
+</html>
