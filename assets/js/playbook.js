@@ -89,13 +89,30 @@
         <div class="dep-sub muted small">${sub}</div>`;
     };
 
+    // Real-world altitude: plain string, or a climb chain (top shown, steps on hover/focus)
+    const chainHtml = (v) => {
+      const c = v && typeof v === "object" ? (v.chain ? D.depChains?.[v.chain] : v) : null;
+      if (!c) return altHtml(v);
+      const steps = (c.steps || []).map((st, i) => `
+        <li><span class="ch-n">${i + 1}</span>
+          <div><div class="ch-hop">${esc(st.from)} <span>→</span> ${esc(st.to)}</div>
+            ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
+            ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
+      return `<span class="dep-alt has-chain" tabindex="0">${esc(c.top)}
+        <div class="chain-pop" role="tooltip">
+          <div class="ch-head"><b>${esc(c.title || "")}</b><span>Top ${esc(c.top)}</span></div>
+          <ol>${steps}</ol>
+          ${c.ref ? `<div class="ch-ref">${esc(c.ref)}</div>` : ""}
+        </div></span>`;
+    };
+
     function renderReal() {
       return order.filter((a) => D.departures[a]).map((a) => {
         const dep = D.departures[a], alts = D.depAlt?.[a] || {};
         const groups = new Map();
         dep.routes.forEach(([r, sp]) => { if (!groups.has(sp)) groups.set(sp, []); groups.get(sp).push(r); });
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
-        const filled = sps.filter((sp) => String(alts[sp] ?? "").trim()).length;
+        const filled = sps.filter((sp) => typeof alts[sp] === "object" ? !!alts[sp] : String(alts[sp] ?? "").trim()).length;
         return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
           ${head(a, `${sps.length} SP · ${filled}/${sps.length} alt`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}`)}
           <div class="dep-list">
@@ -103,7 +120,7 @@
             ${sps.map((sp) => `<div class="dep-row" data-q="${esc((sp + " " + groups.get(sp).join(" ")).toUpperCase())}">
                 <span class="dep-sp">${esc(sp)}</span>
                 <span class="dep-routes">${groups.get(sp).map(esc).join("<br>")}</span>
-                ${altHtml(alts[sp])}</div>`).join("")}
+                ${chainHtml(alts[sp])}</div>`).join("")}
           </div></div>`;
       }).join("");
     }

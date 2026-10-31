@@ -417,7 +417,25 @@ window.PCT = {
     ]},
   },
 
-  /* Max altitude to climb to before handoff — one line per scratchpad, per area. Leave "" for unknown. */
+  /* Climb chains — the sector-by-sector climb an aircraft gets through PCT.
+     The table shows `top`; hovering the altitude shows every step.
+     step: { from, to, alt, req, note }   alt "" = no altitude at that step; req = applies to aircraft requesting …
+     Reference a chain from depAlt with { chain: "ID" }. */
+  depChains: {
+    LINSE_BWI: {
+      title: "LINSE# · BWI",
+      top: "160",
+      ref: "65H TBL 5-12-2 / 5-13-1",
+      steps: [
+        { from: "BWI ATCT", to: "CHP - WOOLY", alt: "", note: "Initial departure sector. On the LINSE RNAV SID." },
+        { from: "CHP - WOOLY", to: "CHP - BUFFR", alt: "AOA 120 ↑160", req: "Req. AOA FL180",
+          note: "On the SID or direct LINSE. BUFFR has control for turns and climb west of WOOLY int." },
+      ],
+    },
+  },
+
+  /* Max altitude to climb to before handoff — one line per scratchpad, per area.
+     Value: "170" (plain), or { chain: "ID" } to show a climb chain on hover. Leave "" for unknown. */
   depAlt: {
     CHP: {
       "AGA": "", "AME": "", "AML/J49": "", "BRO": "", "COL": "", "D78": "",
@@ -425,8 +443,8 @@ window.PCT = {
       "DQO": "", "DQO/DEST": "", "DRM": "", "DSC": "", "ENO": "", "FCL": "",
       "FJD": "", "FLZ": "", "FOT": "", "FRM": "", "FSC": "", "FXO": "",
       "FXR": "", "HAP": "", "HAR": "", "HGR": "", "J11/Q21": "", "J49": "",
-      "JER": "", "JOY": "", "JS1": "", "JS2": "", "L11": "", "L21": "",
-      "L78": "", "LDN/J34/J6": "", "LRP": "", "M11": "", "M21": "", "M66/T77/M8/M43/M3/M39": "",
+      "JER": "", "JOY": "", "JS1": "", "JS2": "", "L11": { chain: "LINSE_BWI" }, "L21": { chain: "LINSE_BWI" },
+      "L78": { chain: "LINSE_BWI" }, "LDN/J34/J6": "", "LRP": "", "M11": "", "M21": "", "M66/T77/M8/M43/M3/M39": "",
       "M78": "", "MCL": "", "MCR": "", "MJD": "", "MLD": "", "MOT": "",
       "MRM": "", "MRV": "", "MSC": "", "MXE": "", "OOD": "", "PAL": "",
       "Q27": "", "Q78": "", "SBY": "", "SIE": "", "SWN": "", "T58": "",

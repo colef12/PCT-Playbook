@@ -217,6 +217,24 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .gate-chip { font: 11px var(--mono); padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
 .gate-chip b { color: var(--text); margin-right: 4px; }
 .dep-jrv { white-space: nowrap; }
+/* Climb chain popup (real-world altitudes) */
+.dep-alt.has-chain { position: relative; cursor: help; text-decoration: underline dotted rgba(61,220,132,.6); text-underline-offset: 3px; outline: none; }
+.chain-pop { display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 300px;
+  background: var(--bg-2); border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.55); text-align: left; font: 12px/1.45 var(--sans); color: var(--text); cursor: default; }
+.dep-alt.has-chain:hover .chain-pop, .dep-alt.has-chain:focus .chain-pop, .dep-alt.has-chain:focus-within .chain-pop { display: block; }
+.ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.ch-head b { font: 600 13px var(--mono); }
+.ch-head span { font: 700 13px var(--mono); color: var(--accent); }
+.chain-pop ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.chain-pop li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
+.ch-n { font: 700 11px var(--mono); color: var(--bg); background: var(--accent-2); border-radius: 50%; width: 18px; height: 18px; display: grid; place-items: center; }
+.ch-hop { font: 600 12px var(--mono); }
+.ch-hop span { color: var(--muted); }
+.ch-alt { font: 700 14px var(--mono); color: var(--accent); }
+.ch-alt em { font: 600 11px var(--mono); color: var(--warn); font-style: normal; margin-left: 6px; }
+.ch-note { font-size: 11px; color: var(--muted); }
+.ch-ref { margin-top: 8px; font: 10px var(--mono); color: var(--muted); }
 /* JRV hidden: 3 wider columns, larger text */
 .dep-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 1100px) { .dep-grid.three { grid-template-columns: 1fr; } }
