@@ -69,7 +69,7 @@
      Toggle: VATSIM (vZDC-PCT-P-01G QRG 6-2 + area departure tables) | Real world (65H App. E)
      -------------------------------------------------------------------------- */
   (() => {
-    const order = ["CHP", "JRV", "MTV", "SHD"];
+    const order = ["MTV", "SHD", "CHP", "JRV"];
     let mode = "vatsim";
     try { mode = localStorage.getItem("pct.dep.mode") || "vatsim"; } catch (_) {}
     const altHtml = (v, to) => {
