@@ -29,8 +29,8 @@
     <nav class="sidebar" aria-label="Sections">
       <input id="global-search" class="search" type="search" placeholder="Search sector, freq, airport…  ( / )" autocomplete="off">
       <ul class="nav">
+        <li><a href="#atis">ATIS</a></li>
         <li><a href="#live">Live Network</a></li>
-        <li><a href="#areas">Areas</a></li>
         <li><a href="#sectors">Sectors &amp; Frequencies</a></li>
         <li><a href="#combines">Position Combining</a></li>
         <li><a href="#towers">Tower Frequencies</a></li>
@@ -42,6 +42,15 @@
     </nav>
 
     <main class="content">
+
+      <!-- ATIS -->
+      <section id="atis" class="section">
+        <div class="section-head">
+          <h2>ATIS</h2>
+          <span class="muted small" id="atis-updated">Letter: <span class="ok-txt">green</span> = VATSIM matches real world · <span class="bad-txt">red</span> = mismatch</span>
+        </div>
+        <div id="atis-cards" class="atis-grid"></div>
+      </section>
 
       <!-- LIVE NETWORK -->
       <section id="live" class="section">
@@ -66,16 +75,6 @@
             </table>
           </div>
         </div>
-        <details class="card atis-card">
-          <summary>ATIS text</summary>
-          <div id="live-atis" class="atis-wrap"><span class="muted">No ATIS online.</span></div>
-        </details>
-      </section>
-
-      <!-- AREAS -->
-      <section id="areas" class="section">
-        <div class="section-head"><h2>Areas of Specialization</h2><span class="muted">65H App. B</span></div>
-        <div id="area-cards" class="grid grid-4"></div>
       </section>
 
       <!-- SECTORS -->

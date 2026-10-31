@@ -147,6 +147,42 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .atis-item { font: 12px/1.5 var(--mono); background: var(--bg-2); padding: 10px; border-radius: 6px; border: 1px solid var(--line); }
 .atis-item b { color: var(--accent-2); }
 
+/* ---------- ATIS cards ---------- */
+.ok-txt { color: var(--accent); } .bad-txt { color: var(--bad); }
+.atis-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.atis-card2 { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn);
+  border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.atis-card2.is-vatsim { border-left-color: var(--accent); }
+.atis-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.atis-id { display: flex; align-items: center; gap: 10px; }
+.atis-icao { font: 700 22px var(--sans); letter-spacing: .02em; }
+.src-badge { font: 600 11px var(--mono); padding: 2px 7px; border-radius: 4px; letter-spacing: .06em; }
+.src-real { color: var(--warn); border: 1px solid var(--warn); }
+.src-vatsim { color: var(--accent); border: 1px solid var(--accent); }
+.atis-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.atis-code { min-width: 42px; height: 42px; padding: 0 8px; display: grid; place-items: center;
+  font: 700 22px var(--mono); border: 2px solid var(--text); border-radius: 6px; color: var(--text); }
+.atis-code.match { color: var(--accent); border-color: var(--accent); background: rgba(61,220,132,.08); }
+.atis-code.mismatch { color: var(--bad); border-color: var(--bad); background: rgba(239,83,80,.08); }
+.seg-group { display: inline-flex; align-self: flex-start; background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 3px; gap: 2px; }
+.seg { font: 600 12px var(--sans); padding: 6px 12px; border-radius: 4px; border: 0; background: transparent;
+  color: var(--text); cursor: pointer; }
+.seg:hover { background: var(--panel-2); }
+.seg.on { background: #3b82c4; color: #fff; }
+.wx-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.wx-chip { font: 600 13px var(--mono); padding: 4px 9px; border-radius: 4px; background: var(--panel-2); }
+.atis-text { margin: 0; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word;
+  max-height: 96px; overflow-y: auto; color: var(--text); }
+.atis-empty { font-size: 13px; color: var(--muted); padding: 14px 0; }
+.atis-foot { display: flex; gap: 14px; }
+.link-btn { background: none; border: 0; padding: 0; font: 600 13px var(--sans); color: #5aa7e6; cursor: pointer; }
+.link-btn.muted { color: var(--muted); }
+.paste-box textarea { width: 100%; min-height: 90px; resize: vertical; background: var(--bg-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px; font: 12px var(--mono); }
+.paste-actions { display: flex; gap: 6px; margin-top: 6px; }
+@media (max-width: 600px) { .atis-grid { grid-template-columns: 1fr; } }
+
 .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 16px;
   border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 

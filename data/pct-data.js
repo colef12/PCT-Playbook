@@ -28,6 +28,14 @@ window.PCT = {
     airports: ["KIAD", "KDCA", "KBWI", "KRIC", "KADW", "KCHO"],
   },
 
+  /* ---------------- ATIS cards (top of page) ---------------- */
+  atis: {
+    airports: ["KIAD", "KDCA", "KBWI", "KRIC"],
+    // Real-world D-ATIS source. Returns [{airport,type,code,datis,time}]
+    realWorldEndpoint: "https://datis.clowd.io/api/",
+    realWorldRefreshSec: 120,
+  },
+
   /* ---------------- Areas of specialization ---------------- */
   areas: [
     {
