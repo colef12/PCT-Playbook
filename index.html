@@ -21,7 +21,6 @@
     </div>
     <div class="topbar-right">
       <div class="clock"><span class="clock-label">UTC</span><span id="utc-clock">--:--:--</span></div>
-      <div id="net-status" class="pill pill-idle" title="VATSIM data feed status">VATSIM —</div>
     </div>
   </header>
 
@@ -30,7 +29,6 @@
       <input id="global-search" class="search" type="search" placeholder="Search sector, freq, airport…  ( / )" autocomplete="off">
       <ul class="nav">
         <li><a href="#atis">ATIS</a></li>
-        <li><a href="#live">Live Network</a></li>
         <li><a href="#sectors">Sectors &amp; Frequencies</a></li>
         <li><a href="#combines">Position Combining</a></li>
         <li><a href="#towers">Tower Frequencies</a></li>
@@ -54,31 +52,6 @@
           <button id="atis-refresh" class="seg">Refresh</button>
         </div>
         <div id="atis-cards" class="atis-grid"></div>
-      </section>
-
-      <!-- LIVE NETWORK -->
-      <section id="live" class="section">
-        <div class="section-head">
-          <h2>Live Network</h2>
-          <span class="muted" id="live-updated">Waiting for feed…</span>
-        </div>
-        <div class="grid grid-3">
-          <div class="card">
-            <h3>PCT &amp; Towers Online</h3>
-            <ul id="live-pct" class="list"><li class="muted">—</li></ul>
-          </div>
-          <div class="card">
-            <h3>Neighbors Online</h3>
-            <ul id="live-neighbors" class="list"><li class="muted">—</li></ul>
-          </div>
-          <div class="card">
-            <h3>Airport Traffic</h3>
-            <table class="tbl tbl-compact">
-              <thead><tr><th>APT</th><th>ATIS</th><th title="Filed departures on the ground">DEP</th><th title="Filed arrivals airborne">ARR</th></tr></thead>
-              <tbody id="live-airports"></tbody>
-            </table>
-          </div>
-        </div>
       </section>
 
       <!-- SECTORS -->
@@ -143,7 +116,7 @@
 
       <footer class="footer">
         <span id="footer-meta"></span>
-        <span>Live data: <a href="https://data.vatsim.net/v3/vatsim-data.json" target="_blank" rel="noopener">VATSIM Data API v3</a></span>
+        <span>ATIS: <a href="https://data.vatsim.net/v3/afv-atis-data.json" target="_blank" rel="noopener">VATSIM</a> · <a href="https://atis.info" target="_blank" rel="noopener">atis.info</a></span>
       </footer>
     </main>
   </div>

@@ -13,21 +13,6 @@ window.PCT = {
     updated: "2026-10-31",
   },
 
-  /* ---------------- VATSIM live-feed configuration ---------------- */
-  vatsim: {
-    feed: "https://data.vatsim.net/v3/vatsim-data.json",
-    refreshSec: 60,
-    // Controller callsign prefixes treated as "PCT family" (TRACON + towers in PCT airspace)
-    controllerPrefixes: [
-      "PCT_", "IAD_", "DCA_", "BWI_", "RIC_", "ADW_", "CHO_", "MTN_",
-      "HEF_", "JYO_", "FDK_", "MRB_", "NHK_", "NYG_", "DAA_", "APG_", "ESN_", "SBY_",
-    ],
-    // Overlying / adjacent facilities shown as "Neighbors"
-    neighborPrefixes: ["DC_", "WAS_", "NY_", "PHL_", "ORF_", "ROA_", "PXT_"],
-    // Airports tracked for ATIS + traffic counts
-    airports: ["KIAD", "KDCA", "KBWI", "KRIC", "KADW", "KCHO"],
-  },
-
   /* ---------------- ATIS cards (top of page) ---------------- */
   atis: {
     airports: ["KIAD", "KDCA", "KBWI"],

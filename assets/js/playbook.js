@@ -1,4 +1,4 @@
-/* PCT Playbook — renderer + VATSIM live feed */
+/* PCT Playbook — renderer + ATIS feeds */
 (() => {
   "use strict";
   const D = window.PCT;
@@ -377,71 +377,4 @@
   })();
   window.PCT_ATIS = ATIS;
 
-  /* ---------------- VATSIM live feed ---------------- */
-  const V = D.vatsim;
-  const FAC = { 0: "OBS", 1: "FSS", 2: "DEL", 3: "GND", 4: "TWR", 5: "APP", 6: "CTR" };
-  const matchesAny = (cs, prefixes) => prefixes.some((p) => cs.startsWith(p));
-  const since = (iso) => {
-    const m = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
-    return m >= 60 ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}` : `${m}m`;
-  };
-  const ctrlRow = (c) => `
-    <li><span><span class="fac-badge">${FAC[c.facility] || "—"}</span><span class="cs">${esc(c.callsign)}</span></span>
-    <span class="cs-meta">${esc(c.frequency)} · ${since(c.logon_time)}</span></li>`;
-  const byFacThenCs = (a, b) => (b.facility - a.facility) || a.callsign.localeCompare(b.callsign);
-
-  function setStatus(ok, text) {
-    const el = $("#net-status");
-    el.className = `pill ${ok ? "pill-ok" : "pill-err"}`;
-    el.textContent = text;
-  }
-
-  function renderLive(data) {
-    const ctrls = (data.controllers || []).filter((c) => c.facility > 0);
-    const pct = ctrls.filter((c) => matchesAny(c.callsign, V.controllerPrefixes)).sort(byFacThenCs);
-    const nbr = ctrls.filter((c) => matchesAny(c.callsign, V.neighborPrefixes)).sort(byFacThenCs);
-    $("#live-pct").innerHTML = pct.length ? pct.map(ctrlRow).join("") : '<li class="muted">No PCT positions online.</li>';
-    $("#live-neighbors").innerHTML = nbr.length ? nbr.map(ctrlRow).join("") : '<li class="muted">No neighbors online.</li>';
-
-    // Light up online sectors in the sector table (matches sector name inside callsign, e.g. PCT_MANNE_APP)
-    const onlineCs = pct.map((c) => c.callsign.toUpperCase());
-    $$("#sector-table tbody tr").forEach((tr) => {
-      const name = tr.dataset.sector.replace(/[^A-Z]/g, "");
-      tr.style.boxShadow = onlineCs.some((cs) => cs.replace(/[^A-Z_]/g, "").split("_").includes(name)) ? "inset 3px 0 0 var(--accent)" : "";
-    });
-
-    const atisList = data.atis || [];
-    const pilots = data.pilots || [];
-    $("#live-airports").innerHTML = V.airports.map((apt) => {
-      const atis = atisList.filter((a) => a.callsign.startsWith(apt + "_"));
-      const letters = atis.map((a) => a.atis_code).filter(Boolean).join("/") || "—";
-      const dep = pilots.filter((p) => p.flight_plan?.departure === apt && p.groundspeed < 50).length;
-      const arr = pilots.filter((p) => p.flight_plan?.arrival === apt && p.groundspeed >= 50).length;
-      return `<tr><td class="mono"><b>${apt}</b></td><td><span class="atis-letter">${esc(letters)}</span></td>
-        <td class="mono">${dep}</td><td class="mono">${arr}</td></tr>`;
-    }).join("");
-
-    const upd = data.general?.update_timestamp;
-    $("#live-updated").textContent = `Feed ${upd ? upd.slice(11, 19) + "Z" : "—"} · ${pct.length} PCT · ${nbr.length} nbr · ${(data.pilots || []).length} pilots network-wide`;
-    setStatus(true, `VATSIM ● ${pct.length} PCT`);
-  }
-
-  async function poll() {
-    if (!NET.DIRECT) {   // 2 MB feed is too heavy to pull through the in-app browser every minute
-      setStatus(false, "VATSIM (Pages only)");
-      $("#live-updated").textContent = "Live Network runs on the GitHub Pages site. ATIS above works here.";
-      return;
-    }
-    try {
-      const res = await fetch(V.feed, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      renderLive(await res.json());
-    } catch (err) {
-      console.warn("[PCT] VATSIM feed error:", err);
-      setStatus(false, "VATSIM offline");
-      $("#live-updated").textContent = `Feed error: ${err.message}`;
-    }
-  }
-  poll();
-  setInterval(poll, Math.max(15, V.refreshSec) * 1000);
 })();
