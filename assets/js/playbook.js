@@ -94,6 +94,62 @@
   $$("main .section").forEach((s) => obs.observe(s));
 
   /* =================================================================
+     FETCH LAYER
+     GitHub Pages / local file: plain fetch().
+     Inside Claude (window.claude.use exists): fetch is blocked, so open the
+     URL in the desktop app's built-in browser and read the page text.
+     ================================================================= */
+  const NET = (() => {
+    const HOST = "host:claude_browser";
+    const DIRECT = !(window.claude && typeof window.claude.use === "function");
+    let mcp = null, tabId = null, ready = null, queue = Promise.resolve();
+
+    const resultText = (r) => !r ? "" : typeof r.payload === "string" ? r.payload
+      : ((r.content || []).find((c) => c.type === "text") || {}).text || "";
+    const bodyOf = (t) => {
+      let s = t; const i = s.indexOf("\n---\n"); if (i >= 0) s = s.slice(i + 5);
+      const j = s.lastIndexOf("\n\nTab Context:"); if (j >= 0) s = s.slice(0, j);
+      return s.trim();
+    };
+    const jsonOf = (t) => {
+      const s = bodyOf(t), a = s.search(/[\[{]/), z = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+      if (a < 0 || z < a) throw new Error("no JSON on page");
+      return JSON.parse(s.slice(a, z + 1));
+    };
+    async function init() {
+      if (DIRECT) return true;
+      try { mcp = await window.claude.use("mcp"); } catch (_) { mcp = null; }
+      return !!mcp;
+    }
+    async function openUrl(url) {
+      if (tabId) { try { await mcp.callTool(HOST, "navigate", { tabId, url }, { cache: false }); return; } catch (_) { tabId = null; } }
+      const r = await mcp.callTool(HOST, "preview_start", { url }, { cache: false });
+      const m = resultText(r).match(/tabId[:\s]+([\w-]+)/); tabId = m ? m[1] : null;
+    }
+    async function viaBrowser(url, max) {
+      await openUrl(url);
+      const read = async () => resultText(await mcp.callTool(HOST, "get_page_text", tabId ? { tabId, max_chars: max } : { max_chars: max }, { cache: false }));
+      let txt = await read();
+      for (let i = 0; i < 2 && !bodyOf(txt); i++) { await new Promise((r) => setTimeout(r, 1200)); txt = await read(); }
+      return jsonOf(txt);
+    }
+    async function getJson(url, max = 200000) {
+      ready = ready || init();
+      if (!(await ready)) throw new Error("open this page in the Claude desktop app for live data");
+      if (DIRECT) {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      }
+      // one browser tab: serialize requests
+      const job = queue.then(() => viaBrowser(url, max));
+      queue = job.catch(() => {});
+      return job;
+    }
+    return { DIRECT, getJson };
+  })();
+
+  /* =================================================================
      ATIS CARDS — VATSIM vs real-world D-ATIS
      Mode per airport: auto (VATSIM if online, else real world) | vatsim | real
      ================================================================= */
@@ -161,7 +217,8 @@
         const cs = a.callsign.toUpperCase();
         const type = /_D_ATIS$/.test(cs) ? "dep" : /_A_ATIS$/.test(cs) ? "arr" : "combined";
         const p = parse(text);
-        return { type, code: (a.atis_code || p.code || "").toUpperCase(), text, time: p.time, label: `VATSIM ${type === "combined" ? "" : type.toUpperCase() + " "}· ${a.callsign} · ${a.frequency}` };
+        const time = a.last_updated ? a.last_updated.slice(11, 13) + a.last_updated.slice(14, 16) + "Z" : p.time;
+        return { type, code: (a.atis_code || p.code || "").toUpperCase(), text, time, label: `VATSIM ${type === "combined" ? "" : type.toUpperCase() + " "}· ${a.callsign} · ${a.frequency}` };
       });
     }
     function realEntries(apt) {
@@ -269,32 +326,54 @@
       if (e.target.matches("textarea[data-apt]")) state[e.target.dataset.apt].draft = e.target.value;
     });
 
-    /* ---------- Real-world D-ATIS polling ---------- */
-    async function pollReal() {
-      await Promise.all(A.airports.map(async (apt) => {
-        try {
-          const res = await fetch(A.realWorldEndpoint + apt, { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const j = await res.json();
-          if (!Array.isArray(j)) throw new Error(j?.error || "no data");
-          state[apt].real = j; state[apt].realErr = null;
-        } catch (err) {
-          state[apt].realErr = err.message === "Failed to fetch" ? "blocked/offline" : err.message;
-          console.warn(`[PCT] D-ATIS ${apt}:`, err);
-        }
-      }));
-      renderAll();
-    }
-    pollReal();
-    setInterval(pollReal, Math.max(60, A.realWorldRefreshSec) * 1000);
+    /* ---------- Polling: VATSIM ATIS feed + real-world D-ATIS ---------- */
+    const statusEl = $("#atis-status"), refreshBtn = $("#atis-refresh");
+    const setStatus = (msg, err) => { statusEl.textContent = msg; statusEl.classList.toggle("err", !!err); statusEl.classList.toggle("muted", !err); };
+    const errText = (e) => (e && e.message === "Failed to fetch") ? "blocked/offline" : (e && (e.message || e.code)) || "error";
+    let busy = false;
 
-    return {
-      setVatsim(atisList) {
-        A.airports.forEach((apt) => { state[apt].vatsim = atisList.filter((a) => a.callsign.toUpperCase().startsWith(apt + "_")); });
+    async function refresh() {
+      if (busy) return;
+      busy = true; refreshBtn.disabled = true;
+      const errs = [];
+      try {
+        setStatus("Reading VATSIM ATIS…");
+        try {
+          const list = await NET.getJson(A.vatsimEndpoint, 400000);
+          const arr = Array.isArray(list) ? list : [];
+          A.airports.forEach((apt) => {
+            state[apt].vatsim = arr.filter((a) => new RegExp(`^${apt}(_[A-Z])?_ATIS$`).test((a.callsign || "").toUpperCase()))
+              .sort((a, b) => a.callsign.localeCompare(b.callsign));
+          });
+        } catch (e) { errs.push(`VATSIM: ${errText(e)}`); console.warn("[PCT] VATSIM ATIS:", e); }
         renderAll();
-      },
-      parse, // exposed for console testing: ATIS parse via window.PCT_ATIS.parse(text)
-    };
+
+        for (const apt of A.airports) {
+          setStatus(`Reading real-world D-ATIS for ${apt}…`);
+          try {
+            const d = await NET.getJson(A.realWorldEndpoint + apt, 20000);
+            state[apt].real = (Array.isArray(d) ? d : [d]).filter((x) => x && x.datis);
+            state[apt].realErr = state[apt].real.length ? null : "no D-ATIS";
+          } catch (e) {
+            state[apt].realErr = errText(e); errs.push(`${apt}: ${errText(e)}`);
+            console.warn(`[PCT] D-ATIS ${apt}:`, e);
+          }
+          render(apt);
+        }
+        const summary = A.airports.map((apt) => {
+          const s = state[apt];
+          return `${apt.slice(1)} ${s.vatsim.length ? "VATSIM" : "—"}/${s.real.length ? "RW" : "—"}`;
+        }).join(" · ");
+        setStatus(`Read ${new Date().toISOString().slice(11, 16)}Z · ${summary}${errs.length ? " · " + errs.join("; ") : ""}`, errs.length === A.airports.length + 1);
+      } finally {
+        busy = false; refreshBtn.disabled = false;
+      }
+    }
+    refreshBtn.addEventListener("click", refresh);
+    refresh();
+    setInterval(refresh, Math.max(60, A.refreshSec) * 1000);
+
+    return { parse, refresh }; // window.PCT_ATIS.parse(text) for console testing
   })();
   window.PCT_ATIS = ATIS;
 
@@ -342,14 +421,17 @@
         <td class="mono">${dep}</td><td class="mono">${arr}</td></tr>`;
     }).join("");
 
-    ATIS.setVatsim(atisList);
-
     const upd = data.general?.update_timestamp;
     $("#live-updated").textContent = `Feed ${upd ? upd.slice(11, 19) + "Z" : "—"} · ${pct.length} PCT · ${nbr.length} nbr · ${(data.pilots || []).length} pilots network-wide`;
     setStatus(true, `VATSIM ● ${pct.length} PCT`);
   }
 
   async function poll() {
+    if (!NET.DIRECT) {   // 2 MB feed is too heavy to pull through the in-app browser every minute
+      setStatus(false, "VATSIM (Pages only)");
+      $("#live-updated").textContent = "Live Network runs on the GitHub Pages site. ATIS above works here.";
+      return;
+    }
     try {
       const res = await fetch(V.feed, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

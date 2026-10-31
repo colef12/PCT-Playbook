@@ -31,9 +31,11 @@ window.PCT = {
   /* ---------------- ATIS cards (top of page) ---------------- */
   atis: {
     airports: ["KIAD", "KDCA", "KBWI", "KRIC"],
-    // Real-world D-ATIS source. Returns [{airport,type,code,datis,time}]
-    realWorldEndpoint: "https://datis.clowd.io/api/",
-    realWorldRefreshSec: 120,
+    // VATSIM ATIS-only feed (small) — [{callsign,frequency,atis_code,text_atis,last_updated}]
+    vatsimEndpoint: "https://data.vatsim.net/v3/afv-atis-data.json",
+    // Real-world D-ATIS — [{airport,type,code,datis,time}]  (same source as the LGA Playbook)
+    realWorldEndpoint: "https://atis.info/api/",
+    refreshSec: 120,
   },
 
   /* ---------------- Areas of specialization ---------------- */

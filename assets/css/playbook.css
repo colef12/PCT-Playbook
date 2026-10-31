@@ -148,6 +148,9 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .atis-item b { color: var(--accent-2); }
 
 /* ---------- ATIS cards ---------- */
+.atis-status { display: flex; align-items: center; gap: 10px; margin: -4px 0 12px; }
+.atis-status .seg { border: 1px solid var(--line); }
+.atis-status .err { color: var(--bad); }
 .ok-txt { color: var(--accent); } .bad-txt { color: var(--bad); }
 .atis-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
 .atis-card2 { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn);

@@ -47,7 +47,11 @@
       <section id="atis" class="section">
         <div class="section-head">
           <h2>ATIS</h2>
-          <span class="muted small" id="atis-updated">Letter: <span class="ok-txt">green</span> = VATSIM matches real world · <span class="bad-txt">red</span> = mismatch</span>
+          <span class="muted small">Letter: <span class="ok-txt">green</span> = VATSIM matches real world · <span class="bad-txt">red</span> = mismatch</span>
+        </div>
+        <div class="atis-status">
+          <span id="atis-status" class="muted small">Loading ATIS…</span>
+          <button id="atis-refresh" class="seg">Refresh</button>
         </div>
         <div id="atis-cards" class="atis-grid"></div>
       </section>
