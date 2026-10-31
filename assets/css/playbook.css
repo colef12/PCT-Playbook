@@ -188,7 +188,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-name { font-weight: 600; }
 .dep-meta { margin-left: auto; font-size: 10px; color: var(--muted); }
 .dep-sub { padding: 0 12px 8px; }
-.dep-list { max-height: 560px; overflow-y: auto; border-top: 1px solid var(--line); }
+.dep-list { border-top: 1px solid var(--line); }
 .dep-row { display: grid; grid-template-columns: 74px 1fr 46px; gap: 8px; align-items: start;
   padding: 6px 12px; border-bottom: 1px solid var(--line); }
 .dep-row:hover { background: rgba(79,195,247,.05); }
