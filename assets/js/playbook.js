@@ -111,7 +111,6 @@
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
         return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
           ${head(a, `${sps.length} SP · ${dep.rows.length} routes`, `vZDC ${esc(dep.ref)}`)}
-          ${dep.note ? `<div class="dep-note small">${esc(dep.note)}</div>` : ""}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>
             ${sps.map((sp) => {
@@ -134,10 +133,6 @@
     function render() {
       $$("#dep-mode .seg").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
       $("#dep-src").textContent = mode === "vatsim" ? "vZDC-PCT-P-01G · QRG 6–2 + area dep tables" : "PCT 7110.65H · App. E";
-      $("#dep-gates").innerHTML = mode === "vatsim" && D.pctGates
-        ? `<span class="dep-gates-label">PCT exit tops <small>TBL 6-4-11</small></span>` +
-          D.pctGates.map(([dir, gates, alt]) => `<span class="gate-chip"><b>${esc(dir)}</b> ${esc(gates)} <i>${esc(alt)}</i></span>`).join("")
-        : "";
       $("#dep-cols").innerHTML = mode === "vatsim" ? renderVatsim() : renderReal();
       filter();
       if (window.PCT_ME?.lastAreas) $$("#dep-cols .dep-col").forEach((c) => c.classList.toggle("mine", window.PCT_ME.lastAreas.has(c.dataset.area)));
