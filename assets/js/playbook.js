@@ -65,6 +65,47 @@
       <ul class="proc-body">${p.body.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>
     </article>`).join("");
 
+  /* ---------------- PCT Departures (scratchpad → top altitude) ---------------- */
+  (() => {
+    const order = ["CHP", "JRV", "MTV", "SHD"];
+    const altFmt = (v) => {
+      const s = String(v ?? "").trim();
+      if (!s) return '<span class="dep-alt none">—</span>';
+      return `<span class="dep-alt">${esc(s)}</span>`;
+    };
+    $("#dep-cols").innerHTML = order.filter((a) => D.departures[a]).map((a) => {
+      const dep = D.departures[a], alts = D.depAlt?.[a] || {};
+      const groups = new Map();
+      dep.routes.forEach(([r, sp]) => { if (!groups.has(sp)) groups.set(sp, []); groups.get(sp).push(r); });
+      const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
+      const filled = sps.filter((sp) => String(alts[sp] ?? "").trim()).length;
+      const name = D.areas.find((x) => x.code === a)?.name || a;
+      return `
+        <div class="dep-col" data-area="${a}" ${areaStyle(a)}>
+          <div class="dep-head">
+            <span class="area-tag" ${areaStyle(a)}>${a}</span>
+            <span class="dep-name">${esc(name)}</span>
+            <span class="dep-meta mono">${sps.length} SP · ${filled}/${sps.length} alt</span>
+          </div>
+          <div class="dep-sub muted small">Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}</div>
+          <div class="dep-list">
+            <div class="dep-row dep-th"><span>SP</span><span>Route / Fix</span><span>ALT</span></div>
+            ${sps.map((sp) => `
+              <div class="dep-row" data-q="${esc((sp + " " + groups.get(sp).join(" ")).toUpperCase())}">
+                <span class="dep-sp">${esc(sp)}</span>
+                <span class="dep-routes">${groups.get(sp).map(esc).join("<br>")}</span>
+                ${altFmt(alts[sp])}
+              </div>`).join("")}
+          </div>
+        </div>`;
+    }).join("");
+
+    $("#dep-search").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toUpperCase();
+      $$("#dep-cols .dep-row:not(.dep-th)").forEach((r) => { r.hidden = !!q && !r.dataset.q.includes(q); });
+    });
+  })();
+
   /* ---------------- Search + filters ---------------- */
   const search = $("#global-search");
   function applyFilters() {
@@ -468,6 +509,8 @@
     function applyMine(res) {
       const mine = new Set((res?.rows || []).map((r) => r.sector?.name).filter(Boolean));
       $$("#sector-table tbody tr").forEach((tr) => tr.classList.toggle("mine", mine.has(tr.dataset.sector)));
+      const myAreas = new Set(res?.areas || []);
+      $$("#dep-cols .dep-col").forEach((c) => c.classList.toggle("mine", myAreas.has(c.dataset.area)));
       // area focus → drive the existing area chips
       const want = focus && res?.areas.length ? new Set(res.areas) : null;
       $$("#area-filter .chip").forEach((btn) => {

@@ -30,6 +30,7 @@
       <ul class="nav">
         <li><a href="#me">My Position</a></li>
         <li><a href="#atis">ATIS</a></li>
+        <li><a href="#departures">PCT Departures</a></li>
         <li><a href="#sectors">Sectors &amp; Frequencies</a></li>
         <li><a href="#combines">Position Combining</a></li>
         <li><a href="#towers">Tower Frequencies</a></li>
@@ -67,6 +68,18 @@
           <button id="atis-refresh" class="seg">Refresh</button>
         </div>
         <div id="atis-cards" class="atis-grid"></div>
+      </section>
+
+      <!-- PCT DEPARTURES -->
+      <section id="departures" class="section">
+        <div class="section-head">
+          <h2>PCT Departures</h2>
+          <div class="dep-tools">
+            <input id="dep-search" class="search dep-search" type="search" placeholder="Scratchpad or route…" autocomplete="off">
+            <span class="muted small">65H App. E · top altitude before handoff</span>
+          </div>
+        </div>
+        <div id="dep-cols" class="dep-grid"></div>
       </section>
 
       <!-- SECTORS -->
