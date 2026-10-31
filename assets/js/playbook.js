@@ -65,45 +65,95 @@
       <ul class="proc-body">${p.body.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>
     </article>`).join("");
 
-  /* ---------------- PCT Departures (scratchpad → top altitude) ---------------- */
+  /* ---------------- PCT Departures (scratchpad → top altitude) ----------------
+     Toggle: VATSIM (vZDC-PCT-P-01G QRG 6-2 + area departure tables) | Real world (65H App. E)
+     -------------------------------------------------------------------------- */
   (() => {
     const order = ["CHP", "JRV", "MTV", "SHD"];
-    const altFmt = (v) => {
+    let mode = "vatsim";
+    try { mode = localStorage.getItem("pct.dep.mode") || "vatsim"; } catch (_) {}
+    const altHtml = (v, to) => {
       const s = String(v ?? "").trim();
       if (!s) return '<span class="dep-alt none">—</span>';
-      return `<span class="dep-alt">${esc(s)}</span>`;
+      return `<span class="dep-alt">${esc(s)}${to ? `<small>${esc(to)}</small>` : ""}</span>`;
     };
-    $("#dep-cols").innerHTML = order.filter((a) => D.departures[a]).map((a) => {
-      const dep = D.departures[a], alts = D.depAlt?.[a] || {};
-      const groups = new Map();
-      dep.routes.forEach(([r, sp]) => { if (!groups.has(sp)) groups.set(sp, []); groups.get(sp).push(r); });
-      const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
-      const filled = sps.filter((sp) => String(alts[sp] ?? "").trim()).length;
+    const head = (a, count, sub) => {
       const name = D.areas.find((x) => x.code === a)?.name || a;
-      return `
-        <div class="dep-col" data-area="${a}" ${areaStyle(a)}>
-          <div class="dep-head">
-            <span class="area-tag" ${areaStyle(a)}>${a}</span>
-            <span class="dep-name">${esc(name)}</span>
-            <span class="dep-meta mono">${sps.length} SP · ${filled}/${sps.length} alt</span>
-          </div>
-          <div class="dep-sub muted small">Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}</div>
+      return `<div class="dep-head"><span class="area-tag" ${areaStyle(a)}>${a}</span>
+        <span class="dep-name">${esc(name)}</span><span class="dep-meta mono">${count}</span></div>
+        <div class="dep-sub muted small">${sub}</div>`;
+    };
+
+    function renderReal() {
+      return order.filter((a) => D.departures[a]).map((a) => {
+        const dep = D.departures[a], alts = D.depAlt?.[a] || {};
+        const groups = new Map();
+        dep.routes.forEach(([r, sp]) => { if (!groups.has(sp)) groups.set(sp, []); groups.get(sp).push(r); });
+        const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
+        const filled = sps.filter((sp) => String(alts[sp] ?? "").trim()).length;
+        return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
+          ${head(a, `${sps.length} SP · ${filled}/${sps.length} alt`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}`)}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>Route / Fix</span><span>ALT</span></div>
-            ${sps.map((sp) => `
-              <div class="dep-row" data-q="${esc((sp + " " + groups.get(sp).join(" ")).toUpperCase())}">
+            ${sps.map((sp) => `<div class="dep-row" data-q="${esc((sp + " " + groups.get(sp).join(" ")).toUpperCase())}">
                 <span class="dep-sp">${esc(sp)}</span>
                 <span class="dep-routes">${groups.get(sp).map(esc).join("<br>")}</span>
-                ${altFmt(alts[sp])}
-              </div>`).join("")}
-          </div>
-        </div>`;
-    }).join("");
+                ${altHtml(alts[sp])}</div>`).join("")}
+          </div></div>`;
+      }).join("");
+    }
 
-    $("#dep-search").addEventListener("input", (e) => {
-      const q = e.target.value.trim().toUpperCase();
+    function renderVatsim() {
+      return order.filter((a) => D.vatsimDepartures?.[a]).map((a) => {
+        const dep = D.vatsimDepartures[a];
+        const groups = new Map();
+        dep.rows.forEach((r) => { if (!groups.has(r[0])) groups.set(r[0], []); groups.get(r[0]).push(r); });
+        const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
+        return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
+          ${head(a, `${sps.length} SP · ${dep.rows.length} routes`, `vZDC ${esc(dep.ref)}`)}
+          ${dep.note ? `<div class="dep-note small">${esc(dep.note)}</div>` : ""}
+          <div class="dep-list">
+            <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>
+            ${sps.map((sp) => {
+              const rows = groups.get(sp);
+              const q = (sp + " " + rows.map((r) => r.slice(1).join(" ")).join(" ")).toUpperCase();
+              return `<div class="dep-row v" data-q="${esc(q)}">
+                <span class="dep-sp">${esc(sp)}</span>
+                <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note]) => `
+                  <div class="dep-line">
+                    <div class="dep-routes"><b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>
+                      ${note ? `<div class="dep-rnote">${esc(note)}</div>` : ""}</div>
+                    ${altHtml(alt, to)}
+                  </div>`).join("")}</div>
+              </div>`;
+            }).join("")}
+          </div></div>`;
+      }).join("");
+    }
+
+    function render() {
+      $$("#dep-mode .seg").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
+      $("#dep-src").textContent = mode === "vatsim" ? "vZDC-PCT-P-01G · QRG 6–2 + area dep tables" : "PCT 7110.65H · App. E";
+      $("#dep-gates").innerHTML = mode === "vatsim" && D.pctGates
+        ? `<span class="dep-gates-label">PCT exit tops <small>TBL 6-4-11</small></span>` +
+          D.pctGates.map(([dir, gates, alt]) => `<span class="gate-chip"><b>${esc(dir)}</b> ${esc(gates)} <i>${esc(alt)}</i></span>`).join("")
+        : "";
+      $("#dep-cols").innerHTML = mode === "vatsim" ? renderVatsim() : renderReal();
+      filter();
+      if (window.PCT_ME?.lastAreas) $$("#dep-cols .dep-col").forEach((c) => c.classList.toggle("mine", window.PCT_ME.lastAreas.has(c.dataset.area)));
+    }
+    function filter() {
+      const q = $("#dep-search").value.trim().toUpperCase();
       $$("#dep-cols .dep-row:not(.dep-th)").forEach((r) => { r.hidden = !!q && !r.dataset.q.includes(q); });
+    }
+    $("#dep-search").addEventListener("input", filter);
+    $("#dep-mode").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-mode]"); if (!b) return;
+      mode = b.dataset.mode;
+      try { localStorage.setItem("pct.dep.mode", mode); } catch (_) {}
+      render();
     });
+    render();
   })();
 
   /* ---------------- Search + filters ---------------- */
@@ -510,6 +560,7 @@
       const mine = new Set((res?.rows || []).map((r) => r.sector?.name).filter(Boolean));
       $$("#sector-table tbody tr").forEach((tr) => tr.classList.toggle("mine", mine.has(tr.dataset.sector)));
       const myAreas = new Set(res?.areas || []);
+      if (window.PCT_ME) window.PCT_ME.lastAreas = myAreas;
       $$("#dep-cols .dep-col").forEach((c) => c.classList.toggle("mine", myAreas.has(c.dataset.area)));
       // area focus → drive the existing area chips
       const want = focus && res?.areas.length ? new Set(res.areas) : null;

@@ -75,10 +75,15 @@
         <div class="section-head">
           <h2>PCT Departures</h2>
           <div class="dep-tools">
-            <input id="dep-search" class="search dep-search" type="search" placeholder="Scratchpad or route…" autocomplete="off">
-            <span class="muted small">65H App. E · top altitude before handoff</span>
+            <div class="seg-group" id="dep-mode">
+              <button class="seg" data-mode="vatsim">VATSIM</button>
+              <button class="seg" data-mode="real">Real world</button>
+            </div>
+            <input id="dep-search" class="search dep-search" type="search" placeholder="Scratchpad, SID, gate…" autocomplete="off">
+            <span id="dep-src" class="muted small"></span>
           </div>
         </div>
+        <div id="dep-gates" class="dep-gates"></div>
         <div id="dep-cols" class="dep-grid"></div>
       </section>
 

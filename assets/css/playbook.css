@@ -164,6 +164,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dot.err { background: var(--bad); }
 .me-detail { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent);
   border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px; }
+.me-detail[hidden] { display: none; }
 .me-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .me-cs { font: 700 22px var(--mono); color: var(--accent); }
 .me-areas { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -198,6 +199,24 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-routes { font: 11px/1.45 var(--mono); color: var(--muted); word-break: break-word; }
 .dep-alt { font: 700 14px var(--mono); color: var(--accent); text-align: right; }
 .dep-alt.none { color: var(--line); font-weight: 400; }
+.dep-alt small { display: block; font: 600 9px var(--mono); color: var(--muted); letter-spacing: .02em; }
+.dep-tools .seg-group { padding: 2px; }
+.dep-tools .seg { padding: 5px 10px; }
+.dep-note { padding: 0 12px 8px; color: var(--warn); font-size: 11px; line-height: 1.4; }
+.dep-row.v { grid-template-columns: 52px 1fr; }
+.dep-lines { display: grid; gap: 6px; min-width: 0; }
+.dep-line { display: grid; grid-template-columns: 1fr 52px; gap: 6px; align-items: start; }
+.dep-line + .dep-line { border-top: 1px dashed var(--line); padding-top: 6px; }
+.dep-routes b { color: var(--text); font-weight: 600; }
+.dep-apt { font: 600 10px var(--mono); color: var(--accent-2); opacity: .8; }
+.dep-rnote { font: 10px/1.35 var(--sans); color: var(--muted); font-style: italic; margin-top: 2px; }
+.dep-gates { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.dep-gates:empty { display: none; }
+.dep-gates-label { font: 600 11px var(--sans); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 4px; }
+.dep-gates-label small { font: 10px var(--mono); text-transform: none; margin-left: 4px; }
+.gate-chip { font: 11px var(--mono); padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
+.gate-chip b { color: var(--text); margin-right: 4px; }
+.gate-chip i { font-style: normal; color: var(--accent); margin-left: 4px; font-weight: 600; }
 
 /* ---------- ATIS cards ---------- */
 .atis-status { display: flex; align-items: center; gap: 10px; margin: -4px 0 12px; }

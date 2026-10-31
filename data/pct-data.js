@@ -65,6 +65,98 @@ window.PCT = {
     },
   ],
 
+  /* ---------------- PCT Departures — VATSIM (vZDC-PCT-P-01G) ----------------
+     Scratchpads: QRG 6–2–1..6–2–8 (airport from 6–2–9 master listing).
+     Altitude/To: area departure tables TBL 3-1-2 (CHP), 3-2-2 (JRV), 3-3-2 (MTV), 3-4-2 (SHD).
+     Row: [scratchpad, procedure, exit gate(s), airport, altitude, handoff to, note]
+     ------------------------------------------------------------------------- */
+  vatsimDepartures: {
+    CHP: { ref: "6–2–1 · TBL 3-1-2", note: "Props: AGARD/BROSS → ZDC17 140 (or lower req). MRB/HGR/JST/ELGEE & J211/J220/Q178/Q221/Q227 → ZDC05 170.", rows: [
+      ["AGA", "DUKPN#", "AJGON/DONIL/RADAM/SPEAK", "BWI", "140", "ZDC17", "Climb via SID"],
+      ["CLH", "FIXET#", "FLASK/MAULS", "BWI", "140", "KRANT", "Climb via SID"],
+      ["CLH", "TERPZ#", "CLTCH/FLASK/MAULS", "BWI", "170", "TYSON", "Climb via SID"],
+      ["COL", "CONLE#", "COLIN", "BWI", "140", "KRANT", "Non-RNAV: vector thru CONLE gate (DCA R-108/R-124)"],
+      ["JDB", "FIXET#", "MELTN/RRSIN", "BWI", "140", "KRANT", ""],
+      ["JDB", "TERPZ#", "MELTN/RRSIN", "BWI", "170", "TYSON", ""],
+      ["JER", "LINSE#", "JERES", "BWI/FDK/MTN", "170", "ZDC05", "DCA/IAD shared"],
+      ["MCR", "LINSE#", "MCRAY", "BWI/FDK/MTN", "170", "ZDC05", ""],
+      ["OTO", "FIXET#", "OTTTO", "BWI", "140", "KRANT", "Y+ FIX"],
+      ["OTO", "FOXHL#", "OTTTO", "BWI", "170", "TYSON", "Y+ FOX"],
+      ["RAM", "FIXET#", "RAMAY", "BWI", "140", "KRANT", "Y+ FIX"],
+      ["RAM", "FOXHL#", "RAMAY", "BWI", "170", "TYSON", "Y+ FOX"],
+      ["SCR", "FIXET#", "GLANC", "BWI", "140", "KRANT", ""],
+      ["SCR", "TERPZ#", "GLANC", "BWI", "170", "TYSON", ""],
+      ["SWN", "DUKPN#", "BROSS/BYEDN/SWANN", "BWI", "140", "ZDC17", "Climb via SID"],
+    ]},
+    JRV: { ref: "6–2–3 · TBL 3-2-2 / 6-4-11", note: "Departures assigned 120, 100, or lower requested. RIC props/turboprops to PHL & PHL sats AOB 110.", rows: [
+      ["COL", "COLIN#", "COLIN", "RIC", "120", "ZDC12", "Non-RNAV NE deps must use COLIN SID"],
+      ["LCY", "LUCYL#", "LUCYL", "RIC", "120", "ZDC12", ""],
+      ["RDE", "KALLI#", "READE", "RIC", "120", "ZDC32", ""],
+      ["RDE", "READE#", "READE", "RIC", "120", "ZDC32", ""],
+    ]},
+    MTV: { ref: "6–2–5 · TBL 3-3-2", note: "BWI (CHP) deps thru MTV: CLTCH/JDUBB/SCRAM & RAMAY/OTTTO → FL230, COLIN → FL190. Props via JERES/BUFFR/MCRAY/MRB → BUFFR AOA 100 ↑120.", rows: [
+      ["BFR", "HORTO#", "BUFFR", "DCA", "170", "BUFFR", "AOA 100 ↑170, control for turns NW of AML R-050"],
+      ["CLH", "CLTCH#", "CLTCH/FLASK/MAULS", "DCA", "210", "ZDC32", "ORF arrivals at 150"],
+      ["CLH", "JEFSN#", "FLASK/MAULS", "ADW", "210", "ZDC32", "ORF arrivals at 150"],
+      ["COL", "AMEEE#", "AMEEE/COLIN/SCOOB", "DCA", "190", "ZDC12", "ORF arrivals at 140 · ADW via COLIN/AMEEE: 170"],
+      ["DCR", "DOCTR#", "AGARD/DOCTR/DQO", "DCA", "170", "ZDC17", "PHL arrivals → CHP-PALEO at 110"],
+      ["JDB", "JDUBB#", "JDUBB/MELTN/RRSIN", "DCA", "210", "ZDC32", "ORF arrivals at 150"],
+      ["JDB", "JEFSN#", "MELTN/RRSIN", "ADW", "210", "ZDC32", ""],
+      ["JER", "HORTO#", "JERES", "DCA", "170", "BUFFR", "AOA 100 ↑170"],
+      ["JER", "LINCN#", "JERES", "ADW", "170", "BUFFR", "AOA 100 ↑170"],
+      ["MCR", "LINCN#", "MCRAY", "ADW", "170", "BUFFR", "AOA 100 ↑170"],
+      ["OTO", "LINCN#", "OTTTO", "ADW", "170", "ZDC05", ""],
+      ["OTO", "REBLL#", "OTTTO/REBLL", "DCA", "170", "ZDC05", ""],
+      ["RAM", "LINCN#", "RAMAY", "ADW", "170", "ZDC05", ""],
+      ["RAM", "WYNGS#", "RAMAY/WYNGS", "DCA", "170", "ZDC05", ""],
+      ["SCR", "JEFSN#", "GLANC", "ADW", "210", "ZDC32", ""],
+      ["SCR", "SCRAM#", "GLANC/SCRAM", "DCA", "210", "ZDC32", "ORF arrivals at 150"],
+      ["SWN", "SOOKI#", "SOOKI/SWANN", "DCA", "190", "ZDC17", ""],
+    ]},
+    SHD: { ref: "6–2–7 · TBL 3-4-2", note: "WOOLY gate: 110 jet / 100 turboprop / AOB 70 prop. Props & turboprops: cruise alt or 1,000 below the gate altitude (3-4-2c).", rows: [
+      ["AGA", "JCOBY#", "AGARD", "IAD", "100", "KRANT", "Y+ JCO · direct RIGNZ"],
+      ["AGA", "WOOLY#", "AGARD", "IAD", "110", "WOOLY", "Y+ WOL · direct RAZZA"],
+      ["CLH", "CLTCH#", "CLTCH/FLASK/MAULS", "IAD", "100", "TYSON", "Direct BUTRZ"],
+      ["CLH", "GABBE#", "FLASK/MAULS", "HEF", "100", "TYSON", ""],
+      ["COL", "JCOBY#", "COLIN/SCOOB", "IAD", "100", "KRANT", "Y+ JCO (COLIN)"],
+      ["CSN", "ARSNL#", "CSN", "HEF", "", "", "Not in TBL 3-4-2 (CSN/FLUKY → BARIN AOB 100, TBL 4-17-5b)"],
+      ["GVE", "ARSNL#", "GVE", "HEF", "100", "TYSON", "Per TBL 4-17-5b (HAFNR..GVE)"],
+      ["JDB", "GABBE#", "MELTN/RRSIN", "HEF", "100", "TYSON", ""],
+      ["JDB", "JDUBB#", "JDUBB/MELTN/RRSIN", "IAD", "100", "TYSON", "Direct HAFNR"],
+      ["JER", "HIICH#", "JERES", "HEF", "110", "BUFFR", ""],
+      ["JER", "JERES#", "JERES", "IAD", "110", "BUFFR", "Direct IDORE"],
+      ["JER", "LINSE#", "JERES", "FDK", "110", "BUFFR", ""],
+      ["MCR", "HIICH#", "MCRAY", "HEF", "110", "BUFFR", ""],
+      ["MCR", "LINSE#", "MCRAY", "FDK", "110", "BUFFR", ""],
+      ["MCR", "MCRAY#", "MCRAY", "IAD", "110", "BUFFR", "Direct HAYGR"],
+      ["MRB", "ARSNL#", "MRB", "HEF", "110", "BUFFR", "Y+ blank · per TBL 4-17-5b"],
+      ["MRB", "ARSNL#", "WOOLY", "HEF", "110", "WOOLY", "Y+ WOL"],
+      ["OTO", "HIICH#", "OTTTO", "HEF", "100", "LURAY", ""],
+      ["OTO", "RNLDI#", "OTTTO/RNLDI", "IAD", "100", "LURAY", ""],
+      ["POT", "PTOMC#", "PTOMC", "JYO", "", "", "Verify route"],
+      ["RAM", "BUNZZ#", "RAMAY", "IAD", "100", "LURAY", ""],
+      ["RAM", "HIICH#", "RAMAY", "HEF", "100", "LURAY", ""],
+      ["SCR", "GABBE#", "GLANC", "HEF", "100", "TYSON", ""],
+      ["SCR", "SCRAM#", "GLANC/SCRAM", "IAD", "100", "TYSON", "Direct POOCH"],
+      ["SWN", "JCOBY#", "SWANN", "IAD", "100", "KRANT", ""],
+      ["SWN", "WOOLY#", "SWANN", "IAD", "110", "WOOLY", "Y+ WOL"],
+      ["WIT", "ARSNL#", "MOL/WITTO", "HEF", "100", "TYSON", "Per TBL 4-17-5b (FLUKY..MOL)"],
+      ["WOL", "HIICH#", "WOOLY", "HEF", "110", "WOOLY", ""],
+      ["WOL", "WOOLY#", "BAL", "IAD", "110", "WOOLY", "Direct RAZZA"],
+    ]},
+  },
+
+  /* PCT exit (top) altitudes by gate — vZDC TBL 6-4-11 */
+  pctGates: [
+    ["North", "MCRAY/BUFFR/JERES", "170 / ZDC05"],
+    ["West", "RAMAY/OTTTO", "170 / ZDC05 (230 BWI)"],
+    ["SW", "CLTCH/SCRAM/JDUBB", "210 / ZDC32 (230 BWI)"],
+    ["South", "COLIN", "190 / ZDC12"],
+    ["East", "SWANN · DOCTR", "190 · 170 / ZDC17"],
+    ["RIC W", "READE", "120 / ZDC32"],
+    ["RIC E", "LUCYL", "120 / ZDC12"],
+  ],
+
   /* ---------------- PCT Departures (65H Appendix E) ----------------
      routes: [route/fix, scratchpad] exactly as listed in Tables E-2-1..E-5-1.
      DEST = destination airport shown in scratchpad.
