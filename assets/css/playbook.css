@@ -152,7 +152,8 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .atis-status .seg { border: 1px solid var(--line); }
 .atis-status .err { color: var(--bad); }
 .ok-txt { color: var(--accent); } .bad-txt { color: var(--bad); }
-.atis-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.atis-grid { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1200px) { .atis-grid { grid-template-columns: 1fr; } }
 .atis-card2 { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn);
   border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
 .atis-card2.is-vatsim { border-left-color: var(--accent); }

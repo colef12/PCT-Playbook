@@ -241,7 +241,7 @@
       const showing = s.mode === "vatsim" ? "vatsim" : s.mode === "real" ? "real" : (vP ? "vatsim" : "real");
       const list = showing === "vatsim" ? vat : rw;
       const primary = pick(list);
-      const p = primary ? parse(primary.text) : null;
+      const p = primary ? parse(list.map((x) => x.text).join(" ")) : null;  // arr + dep ATIS combined for chips
 
       // Letter colour: compare VATSIM vs real world when both exist
       let match = "none";
