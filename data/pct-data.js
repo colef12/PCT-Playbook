@@ -13,6 +13,16 @@ window.PCT = {
     updated: "2026-10-31",
   },
 
+  /* ---------------- My Position (CID tracking) ---------------- */
+  me: {
+    // vNAS controller feed: primary AND secondary positions for CRC users (regenerates every 15 s)
+    vnasEndpoint: "https://live.env.vnas.vatsim.net/data-feed/controllers.json",
+    // Fallback for non-vNAS clients (primary callsign/frequency only). GitHub Pages only — too large for in-Claude reads.
+    vatsimEndpoint: "https://data.vatsim.net/v3/vatsim-data.json",
+    refreshSec: 30,
+    facility: "PCT",
+  },
+
   /* ---------------- ATIS cards (top of page) ---------------- */
   atis: {
     airports: ["KIAD", "KDCA", "KBWI"],

@@ -377,4 +377,193 @@
   })();
   window.PCT_ATIS = ATIS;
 
+  /* =================================================================
+     MY POSITION — find the user's CID on the network, list every
+     position they hold (vNAS primary + secondaries), map to PCT sectors/areas.
+     ================================================================= */
+  const ME = (() => {
+    const M = D.me;
+    const cidEl = $("#me-cid"), statusEl = $("#me-status"), detailEl = $("#me-detail"), focusEl = $("#me-focus");
+    let cid = "", focus = false, last = null, busy = false;
+    try { cid = localStorage.getItem("pct.me.cid") || ""; focus = localStorage.getItem("pct.me.focus") === "1"; } catch (_) {}
+    cidEl.value = cid; focusEl.checked = focus;
+
+    const letters = (s) => String(s || "").toUpperCase().replace(/[^A-Z]/g, "");
+    const firstFreq = (s) => { const m = String(s || "").match(/\d{3}\.\d{1,3}/); return m ? (+m[0]).toFixed(3) : ""; };
+    // vNAS frequencies may arrive in Hz (120450000), kHz, or MHz strings — normalise to "120.450"
+    const mhz = (f) => {
+      const n = +String(f ?? "").replace(/[^\d.]/g, "");
+      if (!n) return "";
+      return (n > 1e6 ? n / 1e6 : n > 1e3 ? n / 1e3 : n).toFixed(3);
+    };
+    const pick = (o, ...keys) => { for (const k of keys) { const v = k.split(".").reduce((a, p) => a?.[p], o); if (v !== undefined && v !== null && v !== "") return v; } return undefined; };
+
+    const sectorIndex = D.sectors.map((s) => ({ s, key: letters(s.name), freq: firstFreq(s.vhf) }));
+    const towerIndex = D.towers.map((t) => ({ t, freq: firstFreq(t.freq) }));
+
+    function matchSector(name, freq, callsign) {
+      const n = letters(name);
+      let hit = n && sectorIndex.find((x) => x.key === n || (n.length >= 5 && (n.startsWith(x.key) || x.key.startsWith(n))));
+      if (!hit && callsign) { const parts = String(callsign).toUpperCase().split("_").map(letters); hit = sectorIndex.find((x) => parts.includes(x.key)); }
+      if (!hit && freq) hit = sectorIndex.find((x) => x.freq === freq);
+      return hit ? hit.s : null;
+    }
+
+    /* ---- Normalise a vNAS controller entry ---- */
+    function fromVnas(c) {
+      const vd = c.vatsimData || {};
+      const positions = (c.positions || []).map((p) => ({
+        name: pick(p, "positionName", "name") || "",
+        facility: pick(p, "facilityId", "facility.id") || "",
+        callsign: pick(p, "defaultCallsign", "callsign") || "",
+        radio: pick(p, "radioName") || "",
+        freq: mhz(pick(p, "frequency")),
+        primary: !!pick(p, "isPrimary"),
+        active: pick(p, "isActive") !== false,
+        stars: pick(p, "starsData.sectorId", "starsConfiguration.sectorId") || "",
+      }));
+      return {
+        src: "vNAS",
+        cid: String(pick(vd, "cid") ?? pick(c, "cid") ?? ""),
+        callsign: pick(vd, "callsign") || pick(c, "callsign") || positions.find((p) => p.primary)?.callsign || "",
+        freq: mhz(pick(vd, "primaryFrequency", "frequency")) || positions.find((p) => p.primary)?.freq || "",
+        rating: pick(vd, "userRating", "rating") || "",
+        facilityType: pick(vd, "facilityType") || "",
+        logon: pick(c, "loginTime", "logonTime") || pick(vd, "loginTime") || "",
+        artcc: pick(c, "artccId") || "",
+        primaryFacility: pick(c, "primaryFacilityId") || "",
+        observer: !!pick(c, "isObserver") || /OBS/i.test(pick(vd, "facilityType") || ""),
+        positions,
+      };
+    }
+    const RATINGS = { 1: "OBS", 2: "S1", 3: "S2", 4: "S3", 5: "C1", 7: "C3", 8: "I1", 10: "I3", 11: "SUP", 12: "ADM" };
+    function fromVatsim(c) {
+      return {
+        src: "VATSIM", cid: String(c.cid), callsign: c.callsign, freq: mhz(c.frequency),
+        rating: RATINGS[c.rating] || c.rating, facilityType: "", logon: c.logon_time, artcc: "", primaryFacility: "",
+        observer: c.facility === 0,
+        positions: [{ name: "", facility: "", callsign: c.callsign, radio: "", freq: mhz(c.frequency), primary: true, active: true, stars: "" }],
+      };
+    }
+
+    /* ---- Resolve positions → PCT sectors / areas ---- */
+    function resolve(me) {
+      const rows = me.positions.filter((p) => p.active).map((p) => {
+        const sec = matchSector(p.name, p.freq, p.callsign);
+        const twr = !sec && p.freq ? towerIndex.find((x) => x.freq === p.freq)?.t : null;
+        return { ...p, sector: sec, tower: twr, area: sec?.area || twr?.area || "" };
+      });
+      const areas = [...new Set(rows.map((r) => r.area).filter(Boolean))];
+      return { rows, areas };
+    }
+
+    /* ---- Render ---- */
+    const since = (iso) => {
+      if (!iso) return "";
+      const m = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+      return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`;
+    };
+    function setStatus(html, cls = "") { statusEl.innerHTML = html; statusEl.className = `me-status small ${cls}`; }
+
+    function applyMine(res) {
+      const mine = new Set((res?.rows || []).map((r) => r.sector?.name).filter(Boolean));
+      $$("#sector-table tbody tr").forEach((tr) => tr.classList.toggle("mine", mine.has(tr.dataset.sector)));
+      // area focus → drive the existing area chips
+      const want = focus && res?.areas.length ? new Set(res.areas) : null;
+      $$("#area-filter .chip").forEach((btn) => {
+        const on = want ? want.has(btn.dataset.area) : activeAreas.has(btn.dataset.area) && !btn.dataset.auto;
+        if (want) btn.dataset.auto = "1"; else delete btn.dataset.auto;
+        btn.classList.toggle("on", on);
+        on ? activeAreas.add(btn.dataset.area) : activeAreas.delete(btn.dataset.area);
+      });
+      applyFilters();
+      // pin procedure cards tagged with my areas
+      const grid = $("#proc-cards");
+      const cards = $$(".proc-card", grid);
+      cards.forEach((c, i) => { c.dataset.order ??= i; });
+      const areaNames = new Set((res?.areas || []).flatMap((a) => [a, D.areas.find((x) => x.code === a)?.name?.toUpperCase()]));
+      cards.sort((a, b) => {
+        const ma = $$(".tag", a).some((t) => areaNames.has(t.textContent.toUpperCase())) ? 0 : 1;
+        const mb = $$(".tag", b).some((t) => areaNames.has(t.textContent.toUpperCase())) ? 0 : 1;
+        return ma - mb || a.dataset.order - b.dataset.order;
+      }).forEach((c) => { c.classList.toggle("mine", !!res && $$(".tag", c).some((t) => areaNames.has(t.textContent.toUpperCase()))); grid.appendChild(c); });
+    }
+
+    function render(me) {
+      if (!me) { detailEl.hidden = true; applyMine(null); return; }
+      const res = resolve(me);
+      last = res;
+      const areaChips = res.areas.map((a) => `<span class="area-tag big" ${areaStyle(a)}>${a} · ${esc(D.areas.find((x) => x.code === a)?.name || "")}</span>`).join("")
+        || '<span class="muted small">No PCT area matched</span>';
+      const posRows = res.rows.map((r) => `
+        <tr class="${r.primary ? "prim" : "sec"}">
+          <td>${r.primary ? '<span class="role role-FINAL">PRIMARY</span>' : '<span class="role">SECONDARY</span>'}</td>
+          <td class="mono">${esc(r.name || r.callsign)}</td>
+          <td class="freq">${esc(r.freq)}</td>
+          <td class="mono">${r.sector ? `<b>${esc(r.sector.name)}</b>` : r.tower ? esc(r.tower.fac) : '<span class="muted">no match</span>'}</td>
+          <td>${r.area ? `<span class="area-tag" ${areaStyle(r.area)}>${esc(r.area)}</span>` : ""}</td>
+          <td class="mono muted">${esc(r.facility)}${r.stars ? " · " + esc(r.stars) : ""}</td>
+        </tr>`).join("");
+      detailEl.innerHTML = `
+        <div class="me-head">
+          <div><div class="me-cs">${esc(me.callsign)}</div>
+            <div class="muted small mono">${esc(me.freq)} · ${esc(me.rating)}${me.logon ? " · on " + since(me.logon) : ""}${me.primaryFacility ? " · " + esc(me.primaryFacility) : ""} · via ${me.src}</div></div>
+          <div class="me-areas">${areaChips}</div>
+        </div>
+        ${me.observer ? '<div class="me-warn small">Connected as observer — positions not staffed.</div>' : ""}
+        ${me.src === "VATSIM" ? '<div class="me-warn small">Not found in vNAS feed — showing primary position only (secondary positions need CRC/vNAS).</div>' : ""}
+        <div class="table-wrap"><table class="tbl tbl-compact">
+          <thead><tr><th></th><th>Position</th><th>Freq</th><th>PCT Sector</th><th>Area</th><th>Fac · STARS</th></tr></thead>
+          <tbody>${posRows || '<tr><td colspan="6" class="muted">No active positions.</td></tr>'}</tbody></table></div>`;
+      detailEl.hidden = false;
+      applyMine(res);
+    }
+
+    async function refresh() {
+      if (!cid || busy) return;
+      busy = true;
+      try {
+        let me = null, errs = [];
+        try {
+          const list = await NET.getJson(M.vnasEndpoint, 3000000);
+          const arr = Array.isArray(list) ? list : (list?.controllers || list?.data || []);
+          const hit = arr.find((c) => String(pick(c, "vatsimData.cid", "cid") ?? "") === cid);
+          if (hit) me = fromVnas(hit);
+        } catch (e) { errs.push(`vNAS: ${e.message || e}`); console.warn("[PCT] vNAS:", e); }
+
+        if (!me && NET.DIRECT) {
+          try {
+            const d = await NET.getJson(M.vatsimEndpoint);
+            const hit = (d.controllers || []).find((c) => String(c.cid) === cid);
+            if (hit) me = fromVatsim(hit);
+          } catch (e) { errs.push(`VATSIM: ${e.message || e}`); }
+        }
+        const t = new Date().toISOString().slice(11, 16) + "Z";
+        if (me) setStatus(`<span class="dot on"></span> <b>${esc(cid)}</b> online · checked ${t}`, "ok-txt");
+        else if (errs.length && errs.length >= (NET.DIRECT ? 2 : 1)) setStatus(`<span class="dot err"></span> ${esc(cid)} · feed error: ${esc(errs.join("; "))}`, "bad-txt");
+        else setStatus(`<span class="dot"></span> <b>${esc(cid)}</b> not connected as ATC · checked ${t}`, "muted");
+        render(me);
+      } finally { busy = false; }
+    }
+
+    $("#me-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      cid = cidEl.value.replace(/\D/g, "");
+      try { cid ? localStorage.setItem("pct.me.cid", cid) : localStorage.removeItem("pct.me.cid"); } catch (_) {}
+      if (!cid) { setStatus("Enter your CID to track what you're signed in as.", "muted"); render(null); return; }
+      setStatus(`Looking up ${esc(cid)}…`, "muted");
+      refresh();
+    });
+    focusEl.addEventListener("change", () => {
+      focus = focusEl.checked;
+      try { localStorage.setItem("pct.me.focus", focus ? "1" : "0"); } catch (_) {}
+      applyMine(last && !detailEl.hidden ? last : null);
+    });
+
+    if (cid) { setStatus(`Looking up ${esc(cid)}…`, "muted"); refresh(); }
+    setInterval(refresh, Math.max(15, M.refreshSec) * (NET.DIRECT ? 1000 : 2000));
+    return { refresh, fromVnas, resolve };
+  })();
+  window.PCT_ME = ME;
+
 })();

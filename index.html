@@ -28,6 +28,7 @@
     <nav class="sidebar" aria-label="Sections">
       <input id="global-search" class="search" type="search" placeholder="Search sector, freq, airport…  ( / )" autocomplete="off">
       <ul class="nav">
+        <li><a href="#me">My Position</a></li>
         <li><a href="#atis">ATIS</a></li>
         <li><a href="#sectors">Sectors &amp; Frequencies</a></li>
         <li><a href="#combines">Position Combining</a></li>
@@ -40,6 +41,20 @@
     </nav>
 
     <main class="content">
+
+      <!-- MY POSITION -->
+      <section id="me" class="section me-section">
+        <div class="me-bar">
+          <form id="me-form" class="me-form" autocomplete="off">
+            <label for="me-cid" class="me-label">CID</label>
+            <input id="me-cid" class="me-input" inputmode="numeric" pattern="\d{5,8}" placeholder="VATSIM CID">
+            <button class="seg on" type="submit">Save</button>
+          </form>
+          <div id="me-status" class="me-status muted small">Enter your CID to track what you're signed in as.</div>
+          <label class="me-toggle small"><input type="checkbox" id="me-focus"> Show only my areas</label>
+        </div>
+        <div id="me-detail" class="me-detail" hidden></div>
+      </section>
 
       <!-- ATIS -->
       <section id="atis" class="section">

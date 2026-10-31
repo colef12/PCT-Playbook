@@ -147,6 +147,33 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .atis-item { font: 12px/1.5 var(--mono); background: var(--bg-2); padding: 10px; border-radius: 6px; border: 1px solid var(--line); }
 .atis-item b { color: var(--accent-2); }
 
+/* ---------- My Position ---------- */
+.me-section { margin-bottom: 24px; }
+.me-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--panel);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+.me-form { display: flex; align-items: center; gap: 8px; }
+.me-label { font: 600 11px var(--mono); color: var(--muted); letter-spacing: .08em; }
+.me-input { width: 120px; padding: 6px 9px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--bg-2); color: var(--text); font: 600 14px var(--mono); }
+.me-input:focus { outline: none; border-color: var(--accent); }
+.me-form .seg { border: 0; }
+.me-status { flex: 1; min-width: 200px; }
+.me-toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 4px; }
+.dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.dot.err { background: var(--bad); }
+.me-detail { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px; }
+.me-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.me-cs { font: 700 22px var(--mono); color: var(--accent); }
+.me-areas { display: flex; gap: 6px; flex-wrap: wrap; }
+.area-tag.big { font-size: 13px; padding: 4px 10px; }
+.me-warn { color: var(--warn); }
+.me-detail tr.sec td { font-style: italic; }
+#sector-table tr.mine { background: rgba(61,220,132,.09); box-shadow: inset 3px 0 0 var(--accent); }
+#sector-table tr.mine td:nth-child(2) b { color: var(--accent); }
+.proc-card.mine { border-color: rgba(61,220,132,.45); }
+
 /* ---------- ATIS cards ---------- */
 .atis-status { display: flex; align-items: center; gap: 10px; margin: -4px 0 12px; }
 .atis-status .seg { border: 1px solid var(--line); }
