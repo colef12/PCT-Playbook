@@ -74,10 +74,13 @@
     let mode = "vatsim", hideJrv = false;
     try { mode = localStorage.getItem("pct.dep.mode") || "vatsim"; hideJrv = localStorage.getItem("pct.dep.hideJrv") === "1"; } catch (_) {}
     $("#dep-hide-jrv").checked = hideJrv;
+    // Handoff sector → "AREA - SECTOR" (e.g. BUFFR → CHP - BUFFR). Non-PCT (ZDC05 etc.) unchanged.
+    const secArea = Object.fromEntries(D.sectors.map((x) => [x.name.replace(/[^A-Z]/g, ""), x.area]));
+    const toLabel = (to) => { const k = String(to || "").toUpperCase(); return secArea[k] ? `${secArea[k]} - ${k}` : to; };
     const altHtml = (v, to) => {
       const s = String(v ?? "").trim();
       if (!s) return '<span class="dep-alt none">—</span>';
-      return `<span class="dep-alt">${esc(s)}${to ? `<small>${esc(to)}</small>` : ""}</span>`;
+      return `<span class="dep-alt">${esc(s)}${to ? `<small>${esc(toLabel(to))}</small>` : ""}</span>`;
     };
     const head = (a, count, sub) => {
       const name = D.areas.find((x) => x.code === a)?.name || a;
