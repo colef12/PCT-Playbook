@@ -89,18 +89,19 @@
         <div class="dep-sub muted small">${sub}</div>`;
     };
 
-    // Real-world altitude: plain string, or a climb chain (top shown, steps on hover/focus)
-    const chainHtml = (v) => {
+    // Altitude with climb chain: top shown, steps in a popup on hover/focus. Works for both modes.
+    const chainHtml = (v, to) => {
       const c = v && typeof v === "object" ? (v.chain ? D.depChains?.[v.chain] : v) : null;
-      if (!c) return altHtml(v);
+      if (!c) return altHtml(v, to);
       const steps = (c.steps || []).map((st, i) => `
         <li><span class="ch-n">${i + 1}</span>
           <div><div class="ch-hop">${esc(st.from)} <span>→</span> ${esc(st.to)}</div>
             ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
             ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
-      return `<span class="dep-alt has-chain" tabindex="0">${esc(c.top)}
+      const top = c.top ? esc(c.top) : '<span class="none">—</span>';
+      return `<span class="dep-alt has-chain" tabindex="0">${top}${to ? `<small>${esc(toLabel(to))}</small>` : ""}
         <div class="chain-pop" role="tooltip">
-          <div class="ch-head"><b>${esc(c.title || "")}</b><span>Top ${esc(c.top)}</span></div>
+          <div class="ch-head"><b>${esc(c.title || "")}</b><span>${c.top ? "Top " + esc(c.top) : "Top n/a"}</span></div>
           <ol>${steps}</ol>
           ${c.ref ? `<div class="ch-ref">${esc(c.ref)}</div>` : ""}
         </div></span>`;
@@ -130,21 +131,23 @@
         const dep = D.vatsimDepartures[a];
         const groups = new Map();
         dep.rows.forEach((r) => { if (!groups.has(r[0])) groups.set(r[0], []); groups.get(r[0]).push(r); });
+        groups.forEach((g) => g.sort((x, y) => (x[7] ? 1 : 0) - (y[7] ? 1 : 0)));
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
+        const nTransit = dep.rows.filter((r) => r[7]).length;
         return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
-          ${head(a, `${sps.length} SP · ${dep.rows.length} routes`, `vZDC ${esc(dep.ref)}`)}
+          ${head(a, `${sps.length} SP · ${dep.rows.length} routes${nTransit ? ` (${nTransit} transit)` : ""}`, `vZDC ${esc(dep.ref)}`)}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>
             ${sps.map((sp) => {
               const rows = groups.get(sp);
-              const q = (sp + " " + rows.map((r) => r.slice(1).join(" ")).join(" ")).toUpperCase();
+              const q = (sp + " " + rows.map((r) => r.slice(1, 7).join(" ") + (r[7] ? " " + r[7].from + " TRANSIT" : "")).join(" ")).toUpperCase();
               return `<div class="dep-row v" data-q="${esc(q)}">
                 <span class="dep-sp">${esc(sp)}</span>
-                <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note]) => `
-                  <div class="dep-line">
-                    <div class="dep-routes"><b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>
+                <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note, ch]) => `
+                  <div class="dep-line${ch ? " transit" : ""}">
+                    <div class="dep-routes">${ch?.from ? `<span class="area-tag from" ${areaStyle(ch.from)} title="Departs ${esc(ch.from)} area">${esc(ch.from)}</span> ` : ""}<b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>
                       ${note ? `<div class="dep-rnote">${esc(note)}</div>` : ""}</div>
-                    ${altHtml(alt, to)}
+                    ${ch ? chainHtml({ title: `${proc} ${gate} · ${apt}`, top: alt, ref: ch.ref, steps: ch.steps }, to) : altHtml(alt, to)}
                   </div>`).join("")}</div>
               </div>`;
             }).join("")}
