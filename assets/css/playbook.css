@@ -238,7 +238,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .area-tag.from { font-size: 9px; padding: 1px 4px; vertical-align: 1px; opacity: .9; }
 .dep-line.transit .dep-routes b { color: var(--muted); }
 .dep-alt .none { color: var(--line); }
-.dep-alt.vmatch { cursor: help; }
+.dep-alt.alt-label { font-size: 12px; letter-spacing: .06em; }
 .ch-ref { margin-top: 8px; font: 10px var(--mono); color: var(--muted); }
 /* JRV hidden: 3 wider columns, larger text */
 .dep-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }

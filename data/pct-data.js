@@ -465,7 +465,8 @@ window.PCT = {
   /* Climb chains — the sector-by-sector climb an aircraft gets through PCT.
      The table shows `top`; hovering the altitude shows every step.
      step: { from, to, alt, req, note }   alt "" = no altitude at that step; req = applies to aircraft requesting …
-     Reference a chain from depAlt with { chain: "ID" }. */
+     Real world tab: every route shows "ALT"; hovering lists the chain's handoffs.
+     Attach a chain to ONE route via depRouteChains, or to every route of a scratchpad via depAlt { chain: "ID" }. */
   depChains: {
     LINSE_BWI: {
       title: "LINSE# · BWI",
@@ -477,6 +478,14 @@ window.PCT = {
           note: "On the SID or direct LINSE. BUFFR has control for turns and climb west of WOOLY int." },
       ],
     },
+  },
+
+  /* Route → chain (real world). Key = route text exactly as shown in the table. */
+  depRouteChains: {
+    MTV: {},
+    SHD: {},
+    CHP: {},
+    JRV: {},
   },
 
   /* Max altitude to climb to before handoff — one line per scratchpad, per area.
