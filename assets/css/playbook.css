@@ -192,6 +192,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-row { display: grid; grid-template-columns: 74px 1fr 46px; gap: 8px; align-items: start;
   padding: 6px 12px; border-bottom: 1px solid var(--line); }
 .dep-row:hover { background: rgba(79,195,247,.05); }
+.dep-row[hidden] { display: none; }
 .dep-th { position: sticky; top: 0; background: var(--panel-2); z-index: 1; font: 600 10px var(--sans);
   text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .dep-th span:last-child { text-align: right; }
@@ -237,6 +238,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .area-tag.from { font-size: 9px; padding: 1px 4px; vertical-align: 1px; opacity: .9; }
 .dep-line.transit .dep-routes b { color: var(--muted); }
 .dep-alt .none { color: var(--line); }
+.dep-alt.vmatch { cursor: help; }
 .ch-ref { margin-top: 8px; font: 10px var(--mono); color: var(--muted); }
 /* JRV hidden: 3 wider columns, larger text */
 .dep-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }

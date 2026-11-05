@@ -107,21 +107,57 @@
         </div></span>`;
     };
 
+    // Match a real-world route to a VATSIM row in the same area: same SID + transition(s).
+    // "HORTO#.BUFFR" ↔ VATSIM [HORTO#, "BUFFR"]; "CLTCH#.MAULS/FLASK" ↔ [CLTCH#, "CLTCH/FLASK/MAULS"];
+    // bare "MCRAY#" ↔ any MCRAY# row. Airway/fix tails after the transition are ignored.
+    function vatsimMatch(area, route) {
+      const m = String(route).replace(/\s*\(.*?\)\s*/g, "").trim().match(/^([A-Z]{5})#(?:\.([A-Z0-9/]+)(?:\..*)?)?$/);
+      if (!m) return null;
+      const proc = m[1] + "#", trans = m[2] ? m[2].split("/") : null;
+      const hits = (D.vatsimDepartures?.[area]?.rows || []).filter((r) => r[1] === proc &&
+        (!trans || trans.every((t) => r[2].split("/").includes(t))));
+      if (!hits.length) return null;
+      const tops = [...new Set(hits.map((r) => r[4]).filter(Boolean))];
+      if (tops.length !== 1) return null;                       // ambiguous or no altitude → leave blank
+      const tos = [...new Set(hits.map((r) => r[5]).filter(Boolean))];
+      return { top: tops[0], to: tos.length === 1 ? tos[0] : "", rows: hits };
+    }
+
     function renderReal() {
       return order.filter((a) => D.departures[a]).map((a) => {
         const dep = D.departures[a], alts = D.depAlt?.[a] || {};
         const groups = new Map();
         dep.routes.forEach(([r, sp]) => { if (!groups.has(sp)) groups.set(sp, []); groups.get(sp).push(r); });
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
-        const filled = sps.filter((sp) => typeof alts[sp] === "object" ? !!alts[sp] : String(alts[sp] ?? "").trim()).length;
+        const explicit = (sp) => typeof alts[sp] === "object" ? !!alts[sp] : !!String(alts[sp] ?? "").trim();
+        let filled = 0, matched = 0;
+        const body = sps.map((sp) => {
+          const routes = groups.get(sp);
+          const hasExplicit = explicit(sp);
+          const lines = routes.map((r, i) => {
+            let alt;
+            if (hasExplicit) alt = i === 0 ? chainHtml(alts[sp]) : '<span class="dep-alt none"></span>';
+            else {
+              const v = vatsimMatch(a, r);
+              if (v) {
+                matched++;
+                const ch = v.rows.find((x) => x[7])?.[7];
+                const src = v.rows.map((x) => `${x[1]} ${x[2]} ${x[3]}`).join(" · ");
+                alt = ch ? chainHtml({ title: `${r} (VATSIM match)`, top: v.top, ref: ch.ref, steps: ch.steps }, v.to)
+                         : altHtml(v.top, v.to).replace('class="dep-alt"', `class="dep-alt vmatch" title="Matches VATSIM: ${esc(src)}"`);
+              } else alt = altHtml("");
+            }
+            return `<div class="dep-line"><div class="dep-routes">${esc(r)}</div>${alt}</div>`;
+          });
+          if (hasExplicit || lines.some((l) => !l.includes('dep-alt none'))) filled++;
+          return `<div class="dep-row v" data-q="${esc((sp + " " + routes.join(" ")).toUpperCase())}">
+              <span class="dep-sp">${esc(sp)}</span><div class="dep-lines">${lines.join("")}</div></div>`;
+        }).join("");
         return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
-          ${head(a, `${sps.length} SP · ${filled}/${sps.length} alt`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}`)}
+          ${head(a, `${sps.length} SP · ${filled}/${sps.length} alt`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""} · ${matched} routes matched to VATSIM`)}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>Route / Fix</span><span>ALT</span></div>
-            ${sps.map((sp) => `<div class="dep-row" data-q="${esc((sp + " " + groups.get(sp).join(" ")).toUpperCase())}">
-                <span class="dep-sp">${esc(sp)}</span>
-                <span class="dep-routes">${groups.get(sp).map(esc).join("<br>")}</span>
-                ${chainHtml(alts[sp])}</div>`).join("")}
+            ${body}
           </div></div>`;
       }).join("");
     }
