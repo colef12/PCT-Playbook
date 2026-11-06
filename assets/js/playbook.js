@@ -77,10 +77,32 @@
     // Handoff sector → "AREA - SECTOR" (e.g. BUFFR → CHP - BUFFR). Non-PCT (ZDC05 etc.) unchanged.
     const secArea = Object.fromEntries(D.sectors.map((x) => [x.name.replace(/[^A-Z]/g, ""), x.area]));
     const toLabel = (to) => { const k = String(to || "").toUpperCase(); return secArea[k] ? `${secArea[k]} - ${k}` : to; };
+    // Facility tiles: "MTV - KRANT" → red KRANT tile · "ZDC32"/"ZDC (05)"/"ZNY" → purple · anything else → grey.
+    // " / " alternatives become separate tiles; a part with no area inherits the previous part's area.
+    const tilesHtml = (label, mini = false) => {
+      const raw = String(label || "").trim();
+      if (!raw || raw === "—") return `<span class="ftile f-other${mini ? " mini" : ""}">—</span>`;
+      let tail = "", text = raw;
+      const pm = text.match(/^(.*?)\s*(\(.*\))$/);
+      if (pm && !/^ZDC\s*\(\d+\)$/.test(text)) { text = pm[1]; tail = pm[2]; }
+      let lastArea = null;
+      const tiles = text.split(/\s+\/\s+/).map((part) => {
+        let m = part.match(/^(CHP|SHD|MTV|JRV)\s*-\s*(.+)$/);
+        let area = null, name = part;
+        if (m) { area = m[1]; name = m[2]; lastArea = area; }
+        else if (/^[A-Z]{5}$/.test(part) && lastArea) area = lastArea;
+        else if ((m = part.match(/^(CHP|SHD|MTV|JRV)(\s.*)?$/))) area = m[1];
+        const z = part.match(/^(Z[A-Z]{2})\s*\(?\s*(\d*)\s*\)?$/);
+        const cls = area ? "f-area" : z ? "f-center" : "f-other";
+        const txt = z ? z[1] + z[2] : name;
+        return `<span class="ftile ${cls}${mini ? " mini" : ""}" ${area ? areaStyle(area) : ""} title="${esc(area ? area + " · " + name : part)}">${esc(txt)}</span>`;
+      }).join('<span class="ftile-or">/</span>');
+      return tiles + (tail ? `<span class="ftile-tail">${esc(tail)}</span>` : "");
+    };
     const altHtml = (v, to) => {
       const s = String(v ?? "").trim();
       if (!s) return '<span class="dep-alt none">—</span>';
-      return `<span class="dep-alt">${esc(s)}${to ? `<small>${esc(toLabel(to))}</small>` : ""}</span>`;
+      return `<span class="dep-alt">${esc(s)}${to ? `<small class="to-tiles">${tilesHtml(toLabel(to), true)}</small>` : ""}</span>`;
     };
     const head = (a, count, sub) => {
       const name = D.areas.find((x) => x.code === a)?.name || a;
@@ -95,11 +117,11 @@
       if (!c) return altHtml(v, to);
       const steps = (c.steps || []).map((st, i) => `
         <li><span class="ch-n">${i + 1}</span>
-          <div><div class="ch-hop">${esc(st.from)} <span>→</span> ${esc(st.to)}</div>
+          <div><div class="ch-hop">${tilesHtml(st.from)}<span class="ch-arrow">▶</span>${tilesHtml(st.to)}</div>
             ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
             ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
       const top = c.top ? esc(c.top) : '<span class="none">—</span>';
-      return `<span class="dep-alt has-chain" tabindex="0">${top}${to ? `<small>${esc(toLabel(to))}</small>` : ""}
+      return `<span class="dep-alt has-chain" tabindex="0">${top}${to ? `<small class="to-tiles">${tilesHtml(toLabel(to), true)}</small>` : ""}
         <div class="chain-pop" role="tooltip">
           <div class="ch-head"><b>${esc(c.title || "")}</b><span>${c.top ? "Top " + esc(c.top) : "Top n/a"}</span></div>
           <ol>${steps}</ol>
@@ -117,7 +139,7 @@
       if (!c) return '<span class="dep-alt none">—</span>';
       const steps = (c.steps || []).map((st, i) => `
         <li><span class="ch-n">${i + 1}</span>
-          <div><div class="ch-hop">${esc(st.from)} <span>→</span> ${esc(st.to)}</div>
+          <div><div class="ch-hop">${tilesHtml(st.from)}<span class="ch-arrow">▶</span>${tilesHtml(st.to)}</div>
             ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
             ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
       return `<span class="dep-alt has-chain alt-label" tabindex="0">ALT

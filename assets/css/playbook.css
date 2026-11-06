@@ -230,8 +230,18 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .chain-pop ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .chain-pop li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
 .ch-n { font: 700 11px var(--mono); color: var(--bg); background: var(--accent-2); border-radius: 50%; width: 18px; height: 18px; display: grid; place-items: center; }
-.ch-hop { font: 600 12px var(--mono); }
-.ch-hop span { color: var(--muted); }
+.ch-hop { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 3px; }
+.ch-arrow { color: var(--muted); font-size: 9px; margin: 0 3px; }
+/* facility tiles */
+.ftile { display: inline-block; font: 700 11.5px var(--mono); letter-spacing: .03em; padding: 3px 8px; border-radius: 5px;
+  border: 1px solid; line-height: 1.2; white-space: nowrap; }
+.ftile.f-area { color: var(--area); border-color: color-mix(in srgb, var(--area) 70%, transparent); background: color-mix(in srgb, var(--area) 14%, transparent); }
+.ftile.f-center { color: #b98cff; border-color: #7c4ddb; background: rgba(124,77,219,.16); }
+.ftile.f-other { color: #b8c1cc; border-color: #4a5566; background: rgba(120,135,155,.12); }
+.ftile.mini { font-size: 8.5px; padding: 1px 4px; border-radius: 3px; letter-spacing: .02em; }
+.ftile-or { color: var(--muted); font-size: 10px; margin: 0 1px; }
+.ftile-tail { color: var(--muted); font: 10px var(--sans); margin-left: 4px; }
+.dep-alt small.to-tiles { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
 .ch-alt { font: 700 14px var(--mono); color: var(--accent); }
 .ch-alt em { font: 600 11px var(--mono); color: var(--warn); font-style: normal; margin-left: 6px; }
 .ch-note { font-size: 11px; color: var(--muted); }
