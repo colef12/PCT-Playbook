@@ -69,7 +69,7 @@ h3 { font-size: 12px; margin: 0 0 10px; text-transform: uppercase; letter-spacin
 .nav a:hover, .nav a.active { background: var(--panel-2); color: var(--accent); text-decoration: none; }
 .sidebar-foot { margin-top: auto; font-size: 11px; color: var(--muted); padding-top: 16px; }
 
-.content { padding: 24px 28px 40px; max-width: 1400px; }
+.content { padding: 24px 28px 40px; min-width: 0; }
 .section { margin-bottom: 40px; }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
