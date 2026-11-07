@@ -150,6 +150,8 @@
         </div></span>`;
     };
 
+    const spHtml = (sp) => esc(sp).replace(/\//g, "/<wbr>");
+
     function renderReal() {
       return order.filter((a) => D.departures[a]).map((a) => {
         const dep = D.departures[a];
@@ -165,9 +167,9 @@
             return `<div class="dep-line"><div class="dep-routes">${esc(r)}</div>${altLabelHtml(c, r)}</div>`;
           });
           return `<div class="dep-row v" data-q="${esc((sp + " " + routes.join(" ")).toUpperCase())}">
-              <span class="dep-sp">${esc(sp)}</span><div class="dep-lines">${lines.join("")}</div></div>`;
+              <span class="dep-sp">${spHtml(sp)}</span><div class="dep-lines">${lines.join("")}</div></div>`;
         }).join("");
-        const spn = Math.max(2, ...sps.map((x) => x.length));
+        const spn = Math.max(3, ...sps.map((x) => Math.max(Math.min(x.length, 8), ...x.split("/").map((t, i, arr) => t.length + (i < arr.length - 1 ? 1 : 0)))));
         return `<div class="dep-col" data-area="${a}" style="--area:${areaColor[a] || "var(--muted)"};--spn:${spn}">
           ${head(a, `${sps.length} SP · ${done}/${dep.routes.length} routes`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}`)}
           <div class="dep-list">
@@ -185,7 +187,7 @@
         groups.forEach((g) => g.sort((x, y) => (x[7] ? 1 : 0) - (y[7] ? 1 : 0)));
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
         const nTransit = dep.rows.filter((r) => r[7]).length;
-        const spn = Math.max(2, ...sps.map((x) => x.length));
+        const spn = Math.max(3, ...sps.map((x) => Math.max(Math.min(x.length, 8), ...x.split("/").map((t, i, arr) => t.length + (i < arr.length - 1 ? 1 : 0)))));
         return `<div class="dep-col" data-area="${a}" style="--area:${areaColor[a] || "var(--muted)"};--spn:${spn}">
           ${head(a, `${sps.length} SP · ${dep.rows.length} routes${nTransit ? ` (${nTransit} transit)` : ""}`, `vZDC ${esc(dep.ref)}`)}
           <div class="dep-list">
@@ -194,7 +196,7 @@
               const rows = groups.get(sp);
               const q = (sp + " " + rows.map((r) => r.slice(1, 7).join(" ") + (r[7] ? " " + r[7].from + " TRANSIT" : "")).join(" ")).toUpperCase();
               return `<div class="dep-row v" data-q="${esc(q)}">
-                <span class="dep-sp">${esc(sp)}</span>
+                <span class="dep-sp">${spHtml(sp)}</span>
                 <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note, ch]) => `
                   <div class="dep-line${ch ? " transit" : ""}">
                     <div class="dep-routes">${ch?.from ? `<span class="area-tag from" ${areaStyle(ch.from)} title="Departs ${esc(ch.from)} area">${esc(ch.from)}</span> ` : ""}<b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>

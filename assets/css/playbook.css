@@ -196,7 +196,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-th { position: sticky; top: 0; background: var(--panel-2); z-index: 1; font: 600 10px var(--sans);
   text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .dep-th span:last-child { text-align: right; }
-.dep-sp { font: 700 var(--spfs) var(--mono); color: var(--accent-2); white-space: nowrap; }
+.dep-sp { font: 700 var(--spfs) var(--mono); color: var(--accent-2); white-space: normal; word-break: keep-all; overflow-wrap: normal; }
 .dep-routes { font: 11px/1.45 var(--mono); color: var(--muted); overflow-wrap: break-word; min-width: 0; }
 .dep-alt { font: 700 14px var(--mono); color: var(--accent); text-align: right; }
 .dep-alt.none { color: var(--line); font-weight: 400; }
