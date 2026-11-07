@@ -167,7 +167,8 @@
           return `<div class="dep-row v" data-q="${esc((sp + " " + routes.join(" ")).toUpperCase())}">
               <span class="dep-sp">${esc(sp)}</span><div class="dep-lines">${lines.join("")}</div></div>`;
         }).join("");
-        return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
+        const spn = Math.max(2, ...sps.map((x) => x.length));
+        return `<div class="dep-col" data-area="${a}" style="--area:${areaColor[a] || "var(--muted)"};--spn:${spn}">
           ${head(a, `${sps.length} SP · ${done}/${dep.routes.length} routes`, `65H Table ${esc(dep.table)}${dep.note ? " · " + esc(dep.note) : ""}`)}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>Route / Fix</span><span>ALT</span></div>
@@ -184,7 +185,8 @@
         groups.forEach((g) => g.sort((x, y) => (x[7] ? 1 : 0) - (y[7] ? 1 : 0)));
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
         const nTransit = dep.rows.filter((r) => r[7]).length;
-        return `<div class="dep-col" data-area="${a}" ${areaStyle(a)}>
+        const spn = Math.max(2, ...sps.map((x) => x.length));
+        return `<div class="dep-col" data-area="${a}" style="--area:${areaColor[a] || "var(--muted)"};--spn:${spn}">
           ${head(a, `${sps.length} SP · ${dep.rows.length} routes${nTransit ? ` (${nTransit} transit)` : ""}`, `vZDC ${esc(dep.ref)}`)}
           <div class="dep-list">
             <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>

@@ -196,17 +196,19 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .dep-th { position: sticky; top: 0; background: var(--panel-2); z-index: 1; font: 600 10px var(--sans);
   text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .dep-th span:last-child { text-align: right; }
-.dep-sp { font: 700 13px var(--mono); color: var(--accent-2); word-break: break-word; }
-.dep-routes { font: 11px/1.45 var(--mono); color: var(--muted); word-break: break-word; }
+.dep-sp { font: 700 var(--spfs) var(--mono); color: var(--accent-2); white-space: nowrap; }
+.dep-routes { font: 11px/1.45 var(--mono); color: var(--muted); overflow-wrap: break-word; min-width: 0; }
 .dep-alt { font: 700 14px var(--mono); color: var(--accent); text-align: right; }
 .dep-alt.none { color: var(--line); font-weight: 400; }
 .dep-alt small { display: block; font: 600 9px var(--mono); color: var(--muted); letter-spacing: .02em; white-space: nowrap; }
 .dep-tools .seg-group { padding: 2px; }
 .dep-tools .seg { padding: 5px 10px; }
 .dep-note { padding: 0 12px 8px; color: var(--warn); font-size: 11px; line-height: 1.4; }
-.dep-row.v { grid-template-columns: 52px 1fr; }
+.dep-col { --spfs: 13px; --spw: calc(var(--spn, 4) * 0.6 * var(--spfs) + 2px); --altw: 74px; }
+.dep-row.v { grid-template-columns: var(--spw) 1fr; }
+.dep-row.dep-th { grid-template-columns: var(--spw) 1fr var(--altw); }
 .dep-lines { display: grid; gap: 6px; min-width: 0; }
-.dep-line { display: grid; grid-template-columns: 1fr 74px; gap: 6px; align-items: start; }
+.dep-line { display: grid; grid-template-columns: 1fr var(--altw); gap: 6px; align-items: start; }
 .dep-line + .dep-line { border-top: 1px dashed var(--line); padding-top: 6px; }
 .dep-routes b { color: var(--text); font-weight: 600; }
 .dep-apt { font: 600 10px var(--mono); color: var(--accent-2); opacity: .8; }
@@ -255,9 +257,7 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 @media (max-width: 1100px) { .dep-grid.three { grid-template-columns: 1fr; } }
 .dep-grid.three .dep-name { font-size: 16px; }
 .dep-grid.three .dep-row { padding: 8px 14px; }
-.dep-grid.three .dep-row.v { grid-template-columns: 64px 1fr; }
-.dep-grid.three .dep-line { grid-template-columns: 1fr 92px; }
-.dep-grid.three .dep-sp { font-size: 16px; }
+.dep-grid.three .dep-col { --spfs: 16px; --altw: 92px; }
 .dep-grid.three .dep-routes { font-size: 13px; }
 .dep-grid.three .dep-apt { font-size: 11.5px; }
 .dep-grid.three .dep-rnote { font-size: 11.5px; }
