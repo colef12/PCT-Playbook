@@ -18,7 +18,7 @@
   .seg button small{display:block;font-weight:500;font-size:10px;margin-top:3px;opacity:.75}
   .seg button.on{background:#3f3f46;color:#fff}
   .seg button:hover:not(.on){color:var(--text)}
-  .seg button.atis::after{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 2px var(--panel2)}
+  .seg button.atis::after{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--panel2)}
   #altBox{display:none;align-items:center;gap:6px}
   #altBox.on{display:flex}
   #altBox button{width:22px;height:22px;border-radius:5px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;line-height:1;padding:0}
@@ -29,7 +29,7 @@
   .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
   .hbtn:hover{border-color:#52525b}
   .dot{width:7px;height:7px;border-radius:50%;background:#52525b;flex:none}
-  .dot.ok{background:#4ade80} .dot.err{background:#f87171} .dot.busy{background:#fbbf24}
+  .dot.ok{background:#fff} .dot.err{background:#f87171} .dot.busy{background:#fbbf24}
   #live small{font:500 11px var(--mono);color:var(--muted)}
   .pop{position:absolute;top:calc(var(--hdr) + 6px);right:calc(var(--side) + 10px);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;z-index:8;box-shadow:0 10px 30px rgba(0,0,0,.55);display:none;min-width:210px}
   .pop.on{display:block}
@@ -55,14 +55,14 @@
   .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .alb{font:600 10.5px var(--mono);text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .pr{fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round;opacity:.9}
-  .pr.SID{stroke:#fb923c} .pr.STAR{stroke:#22d3ee} .pr.DCA{stroke:#f4f4f5;stroke-dasharray:9 4;stroke-width:1.3;opacity:.8} .pr.dep{stroke-dasharray:4 4}
+  .pr.SID{stroke:#ffffff} .pr.STAR{stroke:#22d3ee} .pr.DCA{stroke:#c4b5fd;stroke-dasharray:9 4;stroke-width:1.3} .pr.dep{stroke-dasharray:4 4}
   .pr.dim{opacity:.12} .pr.hi{stroke-width:3;opacity:1}
   .prh{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke;cursor:pointer}
   .pfx{font:600 10px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3px;pointer-events:none}
-  .pfx.SID{fill:#fdba74} .pfx.STAR{fill:#67e8f9} .pfx.DCA{fill:#e4e4e7}
-  .pfx .rx{fill:#fde68a;font-weight:500}
+  .pfx.SID{fill:#f4f4f5} .pfx.STAR{fill:#67e8f9} .pfx.DCA{fill:#ddd6fe}
+  .pfx .rx{font-weight:500;opacity:.75}
   .pnm{font:700 11px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3.5px;pointer-events:none}
-  .pnm.SID{fill:#fb923c} .pnm.STAR{fill:#22d3ee} .pnm.DCA{fill:#f4f4f5}
+  .pnm.SID{fill:#ffffff} .pnm.STAR{fill:#22d3ee} .pnm.DCA{fill:#c4b5fd}
   .apt circle{fill:#d4d4d8}
   .apt text{font:600 10px var(--mono);fill:#a1a1aa;paint-order:stroke;stroke:#18181b;stroke-width:3px}
   .pin{fill:none;stroke:#fff;stroke-width:1.4;pointer-events:none}
@@ -78,16 +78,16 @@
   #tip .r b{font-family:ui-sans-serif,system-ui,sans-serif}
   #tip .r i{font-style:normal;color:var(--muted)}
   #read{position:absolute;left:12px;bottom:30px;z-index:3;font:11px var(--mono);color:#a1a1aa;background:rgba(24,24,27,.8);border:1px solid var(--line);border-radius:6px;padding:3px 8px;pointer-events:none}
-  #sugg{position:absolute;left:52px;top:calc(var(--hdr) + 12px);z-index:3;display:none;align-items:center;gap:8px;font-size:12px;background:rgba(31,31,35,.95);border:1px solid #3f6212;border-radius:8px;padding:6px 10px}
+  #sugg{position:absolute;left:52px;top:calc(var(--hdr) + 12px);z-index:3;display:none;align-items:center;gap:8px;font-size:12px;background:rgba(31,31,35,.95);border:1px solid #52525b;border-radius:8px;padding:6px 10px}
   #sugg.on{display:flex}
-  #sugg button{background:#365314;border:0;color:#d9f99d;border-radius:5px;padding:3px 8px;font-weight:700;font-size:11px;cursor:pointer}
+  #sugg button{background:#3f3f46;border:0;color:#fff;border-radius:5px;padding:3px 8px;font-weight:700;font-size:11px;cursor:pointer}
   aside{position:absolute;top:var(--hdr);right:0;bottom:0;width:var(--side);background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:4}
   .legend{padding:10px 12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .chip{display:flex;align-items:center;gap:5px;padding:6px 7px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-weight:600;font-size:11.5px;user-select:none;position:relative}
   .chip i{width:10px;height:10px;border-radius:3px;flex:none}
   .chip.dim{opacity:.35}
   .chip.all{justify-content:center;color:var(--muted)}
-  .chip.up::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#4ade80;border:2px solid var(--panel)}
+  .chip.up::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--panel)}
   #scroll{overflow:auto;flex:1}
   .card{padding:12px 14px;border-bottom:1px solid var(--line)}
   .card h3{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);display:flex;align-items:center;gap:6px}
@@ -120,11 +120,11 @@
   .shl span.k:hover{background:var(--panel2)}
   .rte{font:11px/1.7 var(--mono);color:#d4d4d8}
   .rte em{font-style:normal;color:var(--muted)}
-  .rte u{text-decoration:none;color:#fde68a;font-size:10px}
+  .rte u{text-decoration:none;color:var(--muted);font-size:10px}
   .mini{display:inline-flex;margin-left:auto;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px;gap:2px}
   .mini button{background:none;border:0;color:var(--muted);font-weight:700;font-size:10.5px;padding:3px 8px;border-radius:4px;cursor:pointer}
   .mini button.on{background:#3f3f46;color:#fff}
-  .badge{font:700 10px var(--mono);border-radius:4px;padding:1px 6px;background:#14532d;color:#86efac}
+  .badge{font:700 10px var(--mono);border-radius:4px;padding:1px 6px;background:#3f3f46;color:#fff}
   #search{margin:10px 14px 4px;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;width:calc(100% - 28px)}
   #list{padding:0 6px 14px}
   .grp{margin-top:8px}
@@ -177,9 +177,9 @@
 
 <div class="pop" id="layers">
   <h4>Procedures</h4>
-  <label><input type="checkbox" id="tSid" checked> <span style="color:#fb923c">SIDs</span></label>
+  <label><input type="checkbox" id="tSid" checked> <span style="color:#ffffff">SIDs</span></label>
   <label><input type="checkbox" id="tStar" checked> <span style="color:#22d3ee">STARs</span></label>
-  <label><input type="checkbox" id="tDca" checked> DCA / ADW STARs <span class="mini" id="dcaFlow"><button data-d="N" title="DCA/ADW landing north (01)">N</button><button data-d="S" title="DCA/ADW landing south (19)">S</button></span></label>
+  <label><input type="checkbox" id="tDca" checked> <span style="color:#c4b5fd">DCA / ADW STARs</span> <span class="mini" id="dcaFlow"><button data-d="N" title="DCA/ADW landing north (01)">N</button><button data-d="S" title="DCA/ADW landing south (19)">S</button></span></label>
   <h4>Map</h4>
   <label><input type="checkbox" id="tVm" checked> Video map <kbd>V</kbd></label>
   <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
@@ -270,7 +270,7 @@ const posTxt=ll=>{ const r=fromBwi(ll); return `BWI ${p3(r.brg)}°/${r.nm.toFixe
 
 // ---------- state (flow/mode/alt/sector/procedure in the URL hash, layers in localStorage)
 const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0,proc:null,pin:null,ac:null,live:true,dca:'S'};
-const PR=D.procs, PFX=PR.fixes, PC={SID:'#fb923c',STAR:'#22d3ee',DCA:'#f4f4f5'};
+const PR=D.procs, PFX=PR.fixes, PC={SID:'#ffffff',STAR:'#22d3ee',DCA:'#c4b5fd'};
 const cat=p=>p.apt==='BWI'?p.t:'DCA';                              // DCA = DCA/ADW STARs that cross CHP
 const pf=p=>p.dflows?p.dflows[st.dca]:p.flows[st.flow];            // legs for the current BWI flow (or DCA flow)
 const DCAF={N:'North',S:'South'};
@@ -494,7 +494,7 @@ function list(){
   if(ids.length){ const g=grp(`Chesapeake · ${D.flows[st.flow]} flow${st.mode==='ALT'?' · '+ft(st.fl):''}`);
     ids.forEach(id=>{ const o=SEC[id], sp=span(id), here=st.mode==='ALT'?[...new Set(cls.filter(s=>s&&s.sec===id).map(fmtS))]:[], n=live.count[id]||0;
       const r=document.createElement('div'); r.className='row'+(st.sel===id?' sel':'');
-      r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?lo3(sp[0])+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}${st.mode==='ALT'&&!here.length&&sp?' · nothing at '+ft(st.fl):''}${n?` · <span style="color:${COL[id]}">${n} acft</span>`:''}${live.staff[id]?' · <span style="color:#4ade80">online</span>':''}</span>`;
+      r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?lo3(sp[0])+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}${st.mode==='ALT'&&!here.length&&sp?' · nothing at '+ft(st.fl):''}${n?` · <span style="color:${COL[id]}">${n} acft</span>`:''}${live.staff[id]?' · <span style="color:#fff">online</span>':''}</span>`;
       r.onclick=()=>{ st.sel=st.sel===id?null:id; render(); }; g.appendChild(r); }); }
   const pall=prList().filter(p=>!q||[p.id,p.t,p.apt,p.sec,p.from,...pf(p).paths.flat()].some(v=>String(v).toLowerCase().includes(q)));
   [[p=>cat(p)!=='DCA',`BWI procedures · ${D.flows[st.flow]} flow`],[p=>cat(p)==='DCA',`DCA / ADW arrivals through CHP · DCA ${DCAF[st.dca]}`]].forEach(([test,title])=>{ const ps=pall.filter(test);
