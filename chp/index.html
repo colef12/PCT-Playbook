@@ -31,6 +31,7 @@
   .bnd{fill:none;stroke:#71717a;stroke-width:1.5;stroke-dasharray:6 4;vector-effect:non-scaling-stroke;pointer-events:none}
   .sec{stroke-width:1;vector-effect:non-scaling-stroke;transition:fill-opacity .12s}
   .mesh{fill:none;stroke:#e4e4e7;stroke-width:.8;stroke-opacity:.28;vector-effect:non-scaling-stroke;pointer-events:none}
+  .shb{fill:none;stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round}
   .sbd{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round}
   .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .lbl .sub{font:600 10.5px ui-monospace,Menlo,monospace;opacity:.9}
@@ -121,7 +122,7 @@
 </aside>
 <footer id="foot"></footer>
 
-<script src="chp-data.js?v=3"></script>
+<script src="chp-data.js?v=4"></script>
 <script>
 (() => {
 const D = window.CHP_AIR, SECS = D.sectors, SHL = D.shelves;
@@ -166,22 +167,27 @@ function owner(f){ // shelf that owns face at st.fl: lowest ceiling among active
   const act=f.st.map(i=>SHL[i]).filter(s=>inAlt(s,st.fl)); if(!act.length) return null;
   return act.reduce((a,b)=>top(a)<=top(b)?a:b); }
 function topShelf(f){ return f.st.map(i=>SHL[i]).reduce((a,b)=>top(a)>=top(b)?a:b); }
-function compute(){ faces=D.faces[st.flow];
-  cls=faces.map(f=>{ const s = st.mode==='ALT'?owner(f):topShelf(f); return s?s:null; }); }
+function compute(){ faces=D.faces[st.flow]; const focus=st.sel||st.sec;
+  cls=faces.map(f=>{ if(st.mode==='ALT') return owner(f);
+    if(focus){ const m=f.st.map(i=>SHL[i]).filter(x=>x.sec===focus); return m.length?m.reduce((a,b)=>top(a)>=top(b)?a:b):null; }
+    return topShelf(f); }); }
 const ckey=i=>cls[i]?cls[i].sec:'';
+const skey=i=>cls[i]?cls[i].sec+'|'+fmtS(cls[i]):'';
 
 function render(){
   compute();
   const g=$('#gSec'); g.innerHTML='';
   faces.forEach((f,i)=>{ const s=cls[i]; if(!s) return; el('path',{d:pathOf(f.poly),class:'sec',fill:COL[s.sec],stroke:'none','fill-rule':'evenodd','data-i':i},g); });
   const gA=$('#gAol'); gA.innerHTML='';
-  // internal shelf mesh (same sector) faint; sector borders strong
-  let mesh='', bord={};
-  EDGES[st.flow].forEach(e=>{ const ks=e.f.map(ckey); const seg=`M${P(e.a).map(v=>v.toFixed(2))}L${P(e.b).map(v=>v.toFixed(2))}`;
-    const uniq=[...new Set(ks)].filter(Boolean);
-    if(e.f.length===1 || ks[0]!==ks[1]){ uniq.forEach(k=>{ bord[k]=(bord[k]||'')+seg; }); }
-    else if(st.mode==='ALL' && uniq.length) mesh+=seg; });
+  const seg=e=>`M${P(e.a).map(v=>v.toFixed(2))}L${P(e.b).map(v=>v.toFixed(2))}`;
+  let mesh='', shelf={}, bord={};
+  EDGES[st.flow].forEach(e=>{ const [a,b]=[e.f[0],e.f[1]]; const ca=ckey(a), cb=b===undefined?'':ckey(b);
+    const sa=skey(a), sb=b===undefined?'':skey(b), d=seg(e);
+    if(ca!==cb){ [ca,cb].filter(Boolean).forEach(k=>bord[k]=(bord[k]||'')+d); }
+    else if(sa!==sb){ shelf[ca]=(shelf[ca]||'')+d; }
+    else if(st.mode==='ALL' && !(st.sel||st.sec)) mesh+=d; });
   if(mesh) el('path',{d:mesh,class:'mesh'},gA);
+  for(const k in shelf) el('path',{d:shelf[k],class:'shb',stroke:COL[k],'data-s':k},gA);
   for(const k in bord) el('path',{d:bord[k],class:'sbd',stroke:COL[k],'data-s':k},gA);
   paint(); labels(); list(); detail();
   document.querySelectorAll('#flows button').forEach(b=>b.classList.toggle('on',b.dataset.f===st.flow));
@@ -195,7 +201,7 @@ function paint(){
   document.querySelectorAll('#gSec path').forEach(p=>{ const i=+p.dataset.i, s=cls[i], has=focus && faces[i].st.some(j=>SHL[j].sec===focus);
     const dim=focus && !has && s.sec!==focus;
     p.setAttribute('fill-opacity', i===hov?.48 : dim?.04 : (focus&&has?.34 : st.mode==='ALT'?.28:.17)); });
-  document.querySelectorAll('#gAol path.sbd').forEach(p=>p.setAttribute('stroke-opacity', focus&&p.dataset.s!==focus?.15:.95));
+  document.querySelectorAll('#gAol path.sbd,#gAol path.shb').forEach(p=>p.setAttribute('stroke-opacity', focus&&p.dataset.s!==focus?.15:(p.classList.contains('shb')?.85:.95)));
   const m=document.querySelector('#gAol path.mesh'); if(m) m.style.opacity=focus?.15:1;
 }
 function labels(){
@@ -203,10 +209,13 @@ function labels(){
   const focus=st.sel||st.sec, zr=st.k/(st.k0||st.k);
   const px=f=>area(f.poly[0])*S*S*CX*st.k*st.k;
   if($('#tAlt').checked){
-    faces.forEach((f,i)=>{ if(!cls[i]) return; let s;
-      if(st.mode==='ALT') s=cls[i]; else if(focus) s=f.st.map(j=>SHL[j]).find(x=>x.sec===focus); else if(zr>1.9) s=cls[i];
-      if(!s || px(f)<(focus?300:700)) return;
-      const [x,y]=scr(P(f.at)); el('text',{x,y:y+(st.mode==='ALT'?9:0),class:'alb',fill:COL[s.sec]},gL).textContent= (st.mode==='ALL'&&!focus)? fmtS(s) : fmtS(s); });
+    const placed=[];
+    faces.map((f,i)=>[f,i]).sort((a,b)=>area(b[0].poly[0])-area(a[0].poly[0])).forEach(([f,i])=>{ if(!cls[i]) return;
+      if(st.mode!=='ALT' && !focus && zr<=1.9) return;
+      const s=cls[i]; if(px(f)<(focus?300:700)) return;
+      const [x,y]=scr(P(f.at)), t=fmtS(s), k=s.sec+'|'+t;
+      if(placed.some(p=>p.k===k && Math.hypot(p.x-x,p.y-y)<240)) return; placed.push({k,x,y});
+      el('text',{x,y:y+(st.mode==='ALT'?9:0),class:'alb',fill:COL[s.sec]},gL).textContent=t; });
   }
   if($('#tLbl').checked){
     ORDER.forEach(id=>{ if(focus&&focus!==id) return; const fs=faces.map((f,i)=>[f,i]).filter(([f,i])=>cls[i]&&cls[i].sec===id); if(!fs.length) return;
@@ -247,7 +256,7 @@ svg.addEventListener('pointermove',e=>{ if(drag&&moved) return; const i=faceAt(e
 svg.addEventListener('pointerleave',()=>{hov=-1; paint(); tip.style.display='none';});
 svg.addEventListener('click',e=>{ if(moved) return; const i=faceAt(e);
   if(i<0) st.sel=null; else { const ids=[...new Set(faces[i].st.map(j=>SHL[j].sec))]; const k=ids.indexOf(st.sel); st.sel=ids[(k+1)%ids.length]; }
-  detail(); paint(); labels(); list(); });
+  render(); });
 const leg=$('#legend');
 ORDER.forEach(id=>{ const c=document.createElement('div'); c.className='chip'; c.dataset.s=id; c.innerHTML=`<i style="background:${COL[id]}"></i>${id}`;
   c.onclick=()=>{ st.sec=st.sec===id?null:id; st.sel=null; legendUI(); render(); }; leg.appendChild(c); });
@@ -262,7 +271,7 @@ function list(){
   ids.forEach(id=>{ const o=SECS.find(x=>x.id===id), sp=span(id), here=st.mode==='ALT'?[...new Set(cls.filter(s=>s&&s.sec===id).map(fmtS))]:[];
     const r=document.createElement('div'); r.className='row'+(st.sel===id?' sel':'');
     r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?(sp[0]===0?'SFC':p3(sp[0]))+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}</span>`;
-    r.onclick=()=>{ st.sel=st.sel===id?null:id; detail(); paint(); labels(); list(); }; g.appendChild(r); });
+    r.onclick=()=>{ st.sel=st.sel===id?null:id; render(); }; g.appendChild(r); });
   L.appendChild(g); if(!ids.length) L.innerHTML='<div style="padding:14px;color:var(--muted)">No sectors.</div>';
 }
 function detail(){
@@ -276,7 +285,7 @@ function detail(){
   <tr><td>Altitudes</td><td>${sp?(sp[0]===0?'SFC':p3(sp[0]))+'–'+p3(sp[1]):'—'}</td></tr><tr><td>Role</td><td>${o.role}</td></tr>
   <tr><td>Shelves</td><td><div class="shl">${[...new Set(ss.map(fmtS))].map(t=>`<span style="border-color:${c}55">${t}</span>`).join('')||'—'}</div></td></tr>
   <tr><td>Flows</td><td>${flowsOpen}</td></tr><tr><td>SOP figure</td><td class="m">${[...new Set(ss.map(s=>s.fig))].join(', ')}</td></tr></table>`;
-  d.querySelector('.x').onclick=()=>{st.sel=null;detail();paint();labels();list();};
+  d.querySelector('.x').onclick=()=>{st.sel=null;render();};
 }
 document.querySelectorAll('#flows button').forEach(b=>b.onclick=()=>{ st.flow=b.dataset.f; render(); });
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.m; render(); });
