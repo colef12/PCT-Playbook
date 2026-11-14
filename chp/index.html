@@ -55,13 +55,14 @@
   .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .alb{font:600 10.5px var(--mono);text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .pr{fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round;opacity:.9}
-  .pr.SID{stroke:#fb923c} .pr.STAR{stroke:#22d3ee} .pr.dep{stroke-dasharray:4 4}
+  .pr.SID{stroke:#fb923c} .pr.STAR{stroke:#22d3ee} .pr.DCA{stroke:#f4f4f5;stroke-dasharray:9 4;stroke-width:1.3;opacity:.8} .pr.dep{stroke-dasharray:4 4}
   .pr.dim{opacity:.12} .pr.hi{stroke-width:3;opacity:1}
   .prh{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke;cursor:pointer}
   .pfx{font:600 10px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3px;pointer-events:none}
-  .pfx.SID{fill:#fdba74} .pfx.STAR{fill:#67e8f9}
+  .pfx.SID{fill:#fdba74} .pfx.STAR{fill:#67e8f9} .pfx.DCA{fill:#e4e4e7}
+  .pfx .rx{fill:#fde68a;font-weight:500}
   .pnm{font:700 11px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3.5px;pointer-events:none}
-  .pnm.SID{fill:#fb923c} .pnm.STAR{fill:#22d3ee}
+  .pnm.SID{fill:#fb923c} .pnm.STAR{fill:#22d3ee} .pnm.DCA{fill:#f4f4f5}
   .apt circle{fill:#d4d4d8}
   .apt text{font:600 10px var(--mono);fill:#a1a1aa;paint-order:stroke;stroke:#18181b;stroke-width:3px}
   .pin{fill:none;stroke:#fff;stroke-width:1.4;pointer-events:none}
@@ -119,6 +120,10 @@
   .shl span.k:hover{background:var(--panel2)}
   .rte{font:11px/1.7 var(--mono);color:#d4d4d8}
   .rte em{font-style:normal;color:var(--muted)}
+  .rte u{text-decoration:none;color:#fde68a;font-size:10px}
+  .mini{display:inline-flex;margin-left:auto;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px;gap:2px}
+  .mini button{background:none;border:0;color:var(--muted);font-weight:700;font-size:10.5px;padding:3px 8px;border-radius:4px;cursor:pointer}
+  .mini button.on{background:#3f3f46;color:#fff}
   .badge{font:700 10px var(--mono);border-radius:4px;padding:1px 6px;background:#14532d;color:#86efac}
   #search{margin:10px 14px 4px;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;width:calc(100% - 28px)}
   #list{padding:0 6px 14px}
@@ -174,6 +179,7 @@
   <h4>Procedures</h4>
   <label><input type="checkbox" id="tSid" checked> <span style="color:#fb923c">SIDs</span></label>
   <label><input type="checkbox" id="tStar" checked> <span style="color:#22d3ee">STARs</span></label>
+  <label><input type="checkbox" id="tDca" checked> DCA / ADW STARs <span class="mini" id="dcaFlow"><button data-d="N" title="DCA/ADW landing north (01)">N</button><button data-d="S" title="DCA/ADW landing south (19)">S</button></span></label>
   <h4>Map</h4>
   <label><input type="checkbox" id="tVm" checked> Video map <kbd>V</kbd></label>
   <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
@@ -192,7 +198,7 @@
     <kbd>1</kbd><span>West</span><kbd>2</kbd><span>North</span><kbd>3</kbd><span>East</span><kbd>4</kbd><span>South flow</span>
     <kbd>A</kbd><span>ALL ↔ BY ALT</span><kbd>↑ ↓</kbd><span>Altitude ±1,000 (BY ALT)</span>
     <kbd>L</kbd><span>Live data on/off</span><kbd>T</kbd><span>Traffic</span><kbd>R</kbd><span>Range rings</span><kbd>V</kbd><span>Video map</span>
-    <kbd>F</kbd><span>Fit map</span><kbd>Esc</kbd><span>Clear selection, pin and filters</span>
+    <kbd>D</kbd><span>DCA/ADW flow North ↔ South</span><kbd>F</kbd><span>Fit map</span><kbd>Esc</kbd><span>Clear selection, pin and filters</span>
   </div>
   <h4>Map</h4>
   <div>Click the map to pin a point and cycle through the sectors stacked there. Click a band in the vertical profile to jump to that altitude. Click a procedure or aircraft to select it.</div>
@@ -220,7 +226,7 @@
 </aside>
 <footer id="foot"></footer>
 
-<script src="chp-data.js?v=5"></script>
+<script src="chp-data.js?v=6"></script>
 <script>
 (() => {
 'use strict';
@@ -263,13 +269,16 @@ function fromBwi([lon,lat]){ const dx=(lon-BWI[0])*60*Math.cos(BWI[1]*Math.PI/18
 const posTxt=ll=>{ const r=fromBwi(ll); return `BWI ${p3(r.brg)}°/${r.nm.toFixed(1)}`; };
 
 // ---------- state (flow/mode/alt/sector/procedure in the URL hash, layers in localStorage)
-const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0,proc:null,pin:null,ac:null,live:true};
-const PR=D.procs, PFX=PR.fixes, PC={SID:'#fb923c',STAR:'#22d3ee'};
-const TOG=['tSid','tStar','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tBwi','tFol'];
+const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0,proc:null,pin:null,ac:null,live:true,dca:'S'};
+const PR=D.procs, PFX=PR.fixes, PC={SID:'#fb923c',STAR:'#22d3ee',DCA:'#f4f4f5'};
+const cat=p=>p.apt==='BWI'?p.t:'DCA';                              // DCA = DCA/ADW STARs that cross CHP
+const pf=p=>p.dflows?p.dflows[st.dca]:p.flows[st.flow];            // legs for the current BWI flow (or DCA flow)
+const DCAF={N:'North',S:'South'};
+const TOG=['tSid','tStar','tDca','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tBwi','tFol'];
 const on=id=>$('#'+id).checked;
 const store={ get(k,d){ try{ const v=localStorage.getItem('pct.chp.'+k); return v===null?d:JSON.parse(v); }catch(_){ return d; } },
               set(k,v){ try{ localStorage.setItem('pct.chp.'+k,JSON.stringify(v)); }catch(_){} } };
-{ const saved=store.get('layers',{}); TOG.forEach(id=>{ if(id in saved) $('#'+id).checked=!!saved[id]; }); st.live=store.get('live',true);
+{ const saved=store.get('layers',{}); TOG.forEach(id=>{ if(id in saved) $('#'+id).checked=!!saved[id]; }); st.live=store.get('live',true); st.dca=store.get('dca','S')==='N'?'N':'S';
   const hm=location.hash.slice(1).split('/'), f=(hm[0]||'').toUpperCase();
   if(D.flows[f]) st.flow=f; else if(D.flows[store.get('flow','')]) st.flow=store.get('flow');
   hm.slice(1).forEach((s,i,a)=>{ const u=s.toUpperCase();
@@ -322,6 +331,7 @@ function render(){
   procs(); paint(); overlay(); list(); detail(); stack(); legendUI();
   $$('#flows button').forEach(b=>b.classList.toggle('on',b.dataset.f===st.flow));
   $$('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===st.mode));
+  $$('#dcaFlow button').forEach(b=>b.classList.toggle('on',b.dataset.d===st.dca));
   $('#altBox').classList.toggle('on',st.mode==='ALT'); $('#alt').value=st.fl; $('#altVal').textContent=ft(st.fl);
   store.set('flow',st.flow);
   history.replaceState(null,'','#'+st.flow.toLowerCase()+(st.mode==='ALT'?'/alt/'+st.fl:'')+(st.sel?'/s:'+st.sel.toLowerCase():'')+(st.proc?'/p:'+st.proc.toLowerCase():''));
@@ -329,17 +339,18 @@ function render(){
 
 // ---------- SIDs / STARs (only the selected BWI flow)
 let prHov=null;
-const prShow=p=>p.flows[st.flow] && on(p.t==='SID'?'tSid':'tStar') && (!st.proc||st.proc===p.id);
-const prList=()=>PR.procs.filter(p=>p.flows[st.flow]);
+const prShow=p=>pf(p) && on({SID:'tSid',STAR:'tStar',DCA:'tDca'}[cat(p)]) && (!st.proc||st.proc===p.id);
+const prList=()=>PR.procs.filter(pf);
+const rwTxt=f=>'RWY '+f.rw+(f.coded?'':' · no runway legs');
 function procs(){
   const g=$('#gPr'); g.innerHTML='';
-  if(st.proc && !PR.procs.some(p=>p.id===st.proc&&p.flows[st.flow])) st.proc=null;
+  if(st.proc && !PR.procs.some(p=>p.id===st.proc&&pf(p))) st.proc=null;
   const sel=$('#pSel'), cur=st.proc||'';
-  sel.innerHTML='<option value="">All procedures · '+D.flows[st.flow]+'</option>'+['STAR','SID'].map(t=>`<optgroup label="${t}s">`+prList().filter(p=>p.t===t).map(p=>`<option value="${p.id}">${p.id} · RWY ${p.flows[st.flow].rw}</option>`).join('')+'</optgroup>').join('');
+  sel.innerHTML='<option value="">All procedures · '+D.flows[st.flow]+'</option>'+[['STAR','BWI STARs'],['SID','BWI SIDs'],['DCA','DCA / ADW STARs · '+DCAF[st.dca]]].map(([t,n])=>`<optgroup label="${n}">`+prList().filter(p=>cat(p)===t).map(p=>`<option value="${p.id}">${p.id} · ${p.apt} ${pf(p).rw}</option>`).join('')+'</optgroup>').join('');
   sel.value=cur;
-  PR.procs.filter(prShow).forEach(p=>{ const f=p.flows[st.flow]; const d=f.paths.map(ps=>lineOf(ps.map(n=>PFX[n]))).join('');
-    if(p.t==='SID') el('path',{d:lineOf([BWI,PFX[f.paths[0][0]]]),class:'pr SID dep','data-p':p.id},g);
-    el('path',{d,class:'pr '+p.t,'data-p':p.id},g);
+  PR.procs.filter(prShow).forEach(p=>{ const f=pf(p); const d=f.paths.map(ps=>lineOf(ps.map(n=>PFX[n]))).join('');
+    if(p.t==='SID') el('path',{d:lineOf([f.der||BWI,PFX[f.first]]),class:'pr SID dep','data-p':p.id},g);
+    el('path',{d,class:'pr '+cat(p),'data-p':p.id},g);
     const h=el('path',{d,class:'prh','data-p':p.id},g);
     h.addEventListener('pointerenter',e=>{ prHov=p.id; paintProcs(); showPrTip(p,e); });
     h.addEventListener('pointermove',e=>showPrTip(p,e));
@@ -349,18 +360,19 @@ function procs(){
 }
 function tipAt(e){ tip.style.display='block'; const b=document.body.getBoundingClientRect(), w=tip.offsetWidth, h=tip.offsetHeight;
   tip.style.left=Math.min(e.clientX+14,b.width-w-8)+'px'; tip.style.top=Math.min(e.clientY+14,b.height-h-8)+'px'; }
-function showPrTip(p,e){ const f=p.flows[st.flow], fx=new Set(f.paths.flat());
-  tip.innerHTML=`<div class="h">${p.t==='SID'?'Departure':'Arrival'} · ${p.apt} · RWY ${f.rw}</div><div class="r"><b style="color:${PC[p.t]}">${p.id}</b><span>${p.sec}</span><i></i></div><div class="r"><i>${p.from}</i><span></span><i>${fx.size} fixes</i></div>`;
+function showPrTip(p,e){ const f=pf(p), fx=new Set(f.paths.flat());
+  tip.innerHTML=`<div class="h">${p.t==='SID'?'Departure':'Arrival'} · ${p.apt} · ${rwTxt(f)}</div><div class="r"><b style="color:${PC[cat(p)]}">${p.id}</b><span>${p.sec}</span><i></i></div><div class="r"><i>${p.from}</i><span></span><i>${fx.size} fixes</i></div>`;
   tipAt(e); }
 function paintProcs(){ const o=prHov||st.proc; $$('#gPr path.pr').forEach(e=>{ e.classList.toggle('hi',!!o&&e.dataset.p===o); e.classList.toggle('dim',!!prHov&&e.dataset.p!==prHov); }); }
 function procLabels(){
   const g=$('#gPfx'); g.innerHTML=''; const zr=st.k/(st.k0||st.k); const vis=PR.procs.filter(prShow); if(!vis.length) return;
   const showFix=st.proc||zr>1.6, seen=new Set();
-  vis.forEach(p=>{ const f=p.flows[st.flow];
-    if(showFix && on('tLbl')) f.paths.flat().forEach(n=>{ if(seen.has(n)) return; seen.add(n); const [x,y]=scr(P(PFX[n]));
-      el('path',{d:`M${x},${y-3.5}L${x+3.2},${y+2.2}L${x-3.2},${y+2.2}Z`,fill:PC[p.t]},g); el('text',{x:x+5,y:y-4,class:'pfx '+p.t},g).textContent=n; });
-    const end=p.t==='SID'?f.paths[0][Math.min(2,f.paths[0].length-1)]:f.paths[0][0]; const [x,y]=scr(P(PFX[end]));
-    el('text',{x:x+6,y:y+12,class:'pnm '+p.t},g).textContent=p.id; });
+  const b=box(), showRx=st.proc||zr>3;
+  vis.forEach(p=>{ const f=pf(p), c=cat(p);
+    if(showFix && on('tLbl')) f.paths.flat().forEach(n=>{ if(seen.has(n)) return; seen.add(n); const [x,y]=scr(P(PFX[n])); if(x<-60||y<-20||x>b.width+20||y>b.height+20) return;
+      el('path',{d:`M${x},${y-3.5}L${x+3.2},${y+2.2}L${x-3.2},${y+2.2}Z`,fill:PC[c]},g); const t=el('text',{x:x+5,y:y-4,class:'pfx '+c},g); t.textContent=n;
+      if(showRx&&f.x[n]) el('tspan',{class:'rx',dx:5},t).textContent=f.x[n]; });
+    const [x,y]=scr(P(PFX[f.lb])); el('text',{x:x+6,y:y+12,class:'pnm '+c},g).textContent=p.id; });
 }
 
 // ---------- fills
@@ -484,14 +496,15 @@ function list(){
       const r=document.createElement('div'); r.className='row'+(st.sel===id?' sel':'');
       r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?lo3(sp[0])+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}${st.mode==='ALT'&&!here.length&&sp?' · nothing at '+ft(st.fl):''}${n?` · <span style="color:${COL[id]}">${n} acft</span>`:''}${live.staff[id]?' · <span style="color:#4ade80">online</span>':''}</span>`;
       r.onclick=()=>{ st.sel=st.sel===id?null:id; render(); }; g.appendChild(r); }); }
-  const ps=prList().filter(p=>!q||[p.id,p.t,p.sec,p.from,...p.flows[st.flow].paths.flat()].some(v=>String(v).toLowerCase().includes(q)));
-  if(ps.length){ const g=grp(`BWI procedures · ${D.flows[st.flow]} flow`);
-    ps.sort((a,b)=>b.t.localeCompare(a.t)||a.id.localeCompare(b.id)).forEach(p=>{ const f=p.flows[st.flow], r=document.createElement('div');
+  const pall=prList().filter(p=>!q||[p.id,p.t,p.apt,p.sec,p.from,...pf(p).paths.flat()].some(v=>String(v).toLowerCase().includes(q)));
+  [[p=>cat(p)!=='DCA',`BWI procedures · ${D.flows[st.flow]} flow`],[p=>cat(p)==='DCA',`DCA / ADW arrivals through CHP · DCA ${DCAF[st.dca]}`]].forEach(([test,title])=>{ const ps=pall.filter(test);
+  if(ps.length){ const g=grp(title);
+    ps.sort((a,b)=>b.t.localeCompare(a.t)||a.id.localeCompare(b.id)).forEach(p=>{ const f=pf(p), c=PC[cat(p)], r=document.createElement('div');
       r.className='row'+(st.proc===p.id?' sel':'');
-      r.innerHTML=`<b style="color:${PC[p.t]}">${p.id}</b><span class="n">${p.sec}</span><span class="f">RWY ${f.rw}</span><span class="alt"><span class="ty" style="background:${PC[p.t]}22;color:${PC[p.t]}">${p.t}</span> ${p.from}</span>`;
+      r.innerHTML=`<b style="color:${c}">${p.id}</b><span class="n">${p.sec}</span><span class="f">${cat(p)==='DCA'?p.apt+' ':'RWY '}${f.rw}</span><span class="alt"><span class="ty" style="background:${c}22;color:${c}">${p.t}</span> ${p.from}</span>`;
       r.onclick=()=>{ st.proc=st.proc===p.id?null:p.id; render(); };
       r.onmouseenter=()=>{ prHov=p.id; paintProcs(); }; r.onmouseleave=()=>{ prHov=null; paintProcs(); };
-      g.appendChild(r); }); }
+      g.appendChild(r); }); } });
   if(st.live&&on('tTrf')){ const ac=live.ac.filter(a=>a.face&&(!q||[a.cs,a.dep,a.arr,a.type,a.own||''].some(v=>String(v).toLowerCase().includes(q))));
     if(ac.length){ const g=grp(`Live traffic over CHP · ${ac.length}`);
       ac.sort((a,b)=>(ORDER.indexOf(a.own)+99)%99-(ORDER.indexOf(b.own)+99)%99||a.cs.localeCompare(b.cs)).forEach(a=>{ const r=document.createElement('div'), c=a.own?COL[a.own]:'#a1a1aa';
@@ -511,14 +524,16 @@ function detail(){
     ${up?`<tr><td>Staffed by</td><td class="m">${up.map(esc).join(', ')}</td></tr>`:''}
     <tr><td>Altitudes</td><td>${sp?lo3(sp[0])+'–'+p3(sp[1]):'—'}</td></tr><tr><td>Role</td><td>${o.role}</td></tr>
     <tr><td>Shelves</td><td><div class="shl">${[...new Set(ss.map(fmtS))].map(t=>`<span style="border-color:${c}55">${t}</span>`).join('')||'—'}</div></td></tr>
-    ${pr.length?`<tr><td>Procedures</td><td><div class="shl">${pr.map(p=>`<span class="k" data-p="${p.id}" style="color:${PC[p.t]};border-color:${PC[p.t]}55">${p.id}</span>`).join('')}</div></td></tr>`:''}
+    ${pr.length?`<tr><td>Procedures</td><td><div class="shl">${pr.map(p=>`<span class="k" data-p="${p.id}" style="color:${PC[cat(p)]};border-color:${PC[cat(p)]}55">${p.id}</span>`).join('')}</div></td></tr>`:''}
     <tr><td>Flows</td><td>${flowsOpen}</td></tr><tr><td>SOP figure</td><td class="m">${[...new Set(ss.map(s=>s.fig))].join(', ')}</td></tr></table>`; }
   const p=st.proc&&PR.procs.find(x=>x.id===st.proc);
-  if(p&&p.flows[st.flow]){ const f=p.flows[st.flow], c=PC[p.t];
+  if(p&&pf(p)){ const f=pf(p), c=PC[cat(p)];
     h+=`<h2 style="color:${c};${st.sel?'margin-top:14px':''}">${p.id}<button class="x" data-x="proc" title="Close">×</button></h2>
-    <div class="st">${p.t==='SID'?'DEPARTURE':'ARRIVAL'} · ${p.apt} · RWY ${f.rw} · ${D.flows[st.flow].toUpperCase()} FLOW</div>
+    <div class="st">${p.t==='SID'?'DEPARTURE':'ARRIVAL'} · ${p.apt} · ${rwTxt(f).toUpperCase()} · ${cat(p)==='DCA'?'DCA '+DCAF[st.dca].toUpperCase():D.flows[st.flow].toUpperCase()+' FLOW'}</div>
     <table><tr><td>Sectors</td><td>${p.sec}</td></tr><tr><td>${p.t==='SID'?'Exit / top':'From'}</td><td>${p.from}</td></tr>
-    <tr><td>Legs</td><td class="rte">${f.paths.map(l=>l.join(' <em>›</em> ')).join('<br>')}</td></tr></table>`; }
+    ${p.tr.length?`<tr><td>Transitions</td><td class="m">${p.tr.join(' · ')}</td></tr>`:''}
+    <tr><td>Legs</td><td class="rte">${f.paths.map(l=>l.map(n=>n+(f.x[n]?` <u>${f.x[n]}</u>`:'')).join(' <em>›</em> ')).join('<br>')}</td></tr>
+    <tr><td>Source</td><td>FAA CIFP ${PR.cycle}; restrictions in hundreds of ft (≥ at or above, ≤ at or below), K = knots</td></tr></table>`; }
   const a=st.ac&&live.ac.find(x=>x.cs===st.ac);
   if(a){ const c=a.own?COL[a.own]:'#d4d4d8';
     h+=`<h2 style="color:${c};${h?'margin-top:14px':''}">${esc(a.cs)}<button class="x" data-x="ac" title="Close">×</button></h2>
@@ -607,6 +622,7 @@ $$('#modes button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.m; render(); })
 $('#alt').oninput=e=>{ st.fl=+e.target.value; render(); };
 $('#altUp').onclick=()=>bump(10); $('#altDn').onclick=()=>bump(-10);
 TOG.forEach(id=>$('#'+id).onchange=()=>{ saveLayers(); layerVis(); render(); if(id==='tFol'&&on('tFol')) poll(); liveUI(); });
+$$('#dcaFlow button').forEach(b=>b.onclick=e=>{ e.preventDefault(); st.dca=b.dataset.d; store.set('dca',st.dca); render(); });
 $('#pSel').onchange=e=>{ st.proc=e.target.value||null; render(); };
 $('#search').oninput=e=>{ st.q=e.target.value; list(); };
 $('#live').onclick=()=>setLive(!st.live);
@@ -618,11 +634,11 @@ window.addEventListener('keydown',e=>{ if(/INPUT|SELECT|TEXTAREA/.test(e.target.
   const k=e.key.toLowerCase(), f={'1':'W','2':'N','3':'E','4':'S'}[k]; if(f) setFlow(f);
   if(k==='a'){ st.mode=st.mode==='ALT'?'ALL':'ALT'; render(); }
   if(st.mode==='ALT'&&(k==='arrowup'||k==='arrowdown')){ e.preventDefault(); bump(k==='arrowup'?10:-10); }
-  if(k==='l') setLive(!st.live); if(k==='t') flip('tTrf'); if(k==='r') flip('tRng'); if(k==='v') flip('tVm'); if(k==='f') fit();
+  if(k==='l') setLive(!st.live); if(k==='t') flip('tTrf'); if(k==='r') flip('tRng'); if(k==='v') flip('tVm'); if(k==='f') fit(); if(k==='d'){ st.dca=st.dca==='N'?'S':'N'; store.set('dca',st.dca); render(); }
   if(k==='?') $('#bHelp').click();
   if(k==='escape'){ st.sel=null; st.sec=null; st.proc=null; st.pin=null; st.ac=null; $$('.pop').forEach(p=>p.classList.remove('on')); render(); } });
 
-$('#src').textContent='Sectors: '+D.source+'. SIDs/STARs from CRC NavData + Vice PCT runway-transition maps (W/N depart 28, E/S depart 15R; STAR runway legs W→28, N→33L, E→10, S→15R). Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude; where shelves overlap the lower ceiling owns. Live traffic, ATIS and staffing from the VATSIM and vNAS data feeds, refreshed every 15 s; bearings from BWI are magnetic. Flight simulation only.';
+$('#src').textContent='Sectors: '+D.source+'. SIDs/STARs from the FAA CIFP (cycle '+PR.cycle+'): every BWI SID and STAR with the runway transition for the flow (W/N depart 28, E/S depart 15R; arrivals W→28, N→33L, E→10, S→15R), plus the DCA/ADW STARs that cross CHP (CLIPR, SKILS, DEALE, SPISY) with their own North/South switch. Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude; where shelves overlap the lower ceiling owns. Live traffic, ATIS and staffing from the VATSIM and vNAS data feeds, refreshed every 15 s; bearings from BWI are magnetic. Flight simulation only.';
 $('#foot').textContent='PCT 7110.65H CHG 1 sector figures on the real PCT STARS video map · flight simulation only · press ? for keys and sources';
 layerVis(); render(); if(!fitted) fit(); setLive(st.live);
 })();

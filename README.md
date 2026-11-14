@@ -22,12 +22,12 @@ Real-world Chesapeake sectors (PCT 7110.65H Ch. 5 figures on the PCT STARS video
 
 - **Flows / views** — West · North · East · South (`1`–`4`); ALL shelves or owner BY ALT (`A`, `↑`/`↓`).
 - **Vertical profile** — hover or click-to-pin a point to see who owns every 1,000 ft from SFC to 170; click a band to jump to that altitude.
-- **Procedures** — BWI SIDs/STARs for the selected flow, with per-procedure leg lists.
+- **Procedures** — every BWI SID (6) and STAR (5) from the FAA CIFP with the runway transition for the selected flow, crossing restrictions, and per-procedure leg lists. DCA/ADW STARs that cross CHP (CLIPR, SKILS, DEALE, SPISY) are a separate layer with its own North/South switch (`D`).
 - **Live VATSIM** (`L`) — traffic tagged and coloured by the CHP sector that owns it at its position and altitude, staffed CHP positions (VATSIM + vNAS feeds), and the BWI ATIS landing runway as a flow suggestion (or auto-follow).
 - **Layers** — video map, PCT areas, airports, altitude labels, BWI range rings (`R`), traffic (`T`); choices persist. Cursor readout is magnetic bearing/distance from BWI.
 - **Deep links** — `chp/#n/alt/40/s:bwifn/p:trish5` (flow / altitude / sector / procedure).
 
-Geometry and procedures live in `chp/chp-data.js`; the page is `chp/index.html`.
+Geometry and procedures live in `chp/chp-data.js`; the page is `chp/index.html`. Rebuild the procedure block after an AIRAC change with `python3 tools/build_procs.py <FAACIFP18[.zst]>` (the CIFP ships with Vice under `resources/`).
 
 ### PCT Departures
 
