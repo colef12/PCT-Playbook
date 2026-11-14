@@ -323,3 +323,18 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
   .layout { display: block; }
   .card, .table-wrap { border-color: #ccc; }
 }
+/* Top page buttons */
+.views { flex: 1; display: flex; justify-content: space-evenly; align-items: center; gap: 10px; margin: 0 28px; max-width: 1500px; }
+.view-btn { flex: 1; max-width: 200px; font: 700 14px var(--mono); letter-spacing: .08em; color: var(--muted);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s; }
+.view-btn:hover { color: var(--text); border-color: var(--muted); }
+.view-btn.on { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.view-btn.area { color: var(--area); border-color: color-mix(in srgb, var(--area) 45%, var(--line)); }
+.view-btn.area:hover { background: color-mix(in srgb, var(--area) 12%, var(--panel)); }
+.view-btn.area.on { color: var(--bg); background: var(--area); border-color: var(--area); }
+.view[hidden] { display: none !important; }
+.view-page { padding: 28px 32px; min-height: calc(100vh - var(--topbar)); }
+.view-page h1 { display: flex; align-items: center; gap: 12px; font-size: 22px; margin: 0 0 8px; }
+.view-page h1 .area-tag { font-size: 15px; padding: 4px 10px; }
+@media (max-width: 900px) { .views { margin: 0 10px; gap: 4px; } .view-btn { font-size: 11px; padding: 7px 4px; letter-spacing: .02em; } .brand-sub { display: none; } }

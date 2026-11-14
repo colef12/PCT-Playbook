@@ -19,12 +19,20 @@
         <div class="brand-sub">vZDC · VATSIM · <span id="version"></span></div>
       </div>
     </div>
+    <nav class="views" id="views" aria-label="Pages">
+      <button class="view-btn" data-view="dashboard">Dashboard</button>
+      <button class="view-btn area" data-view="mtv" style="--area:#e57373">MTV</button>
+      <button class="view-btn area" data-view="shd" style="--area:#81c784">SHD</button>
+      <button class="view-btn area" data-view="chp" style="--area:#4fc3f7">CHP</button>
+      <button class="view-btn area" data-view="jrv" style="--area:#ffb74d">JRV</button>
+      <button class="view-btn" data-view="comb">COMB</button>
+    </nav>
     <div class="topbar-right">
       <div class="clock"><span class="clock-label">UTC</span><span id="utc-clock">--:--:--</span></div>
     </div>
   </header>
 
-  <div class="layout">
+  <div class="layout view" data-view="dashboard">
     <nav class="sidebar" aria-label="Sections">
       <input id="global-search" class="search" type="search" placeholder="Search sector, freq, airport…  ( / )" autocomplete="off">
       <ul class="nav">
@@ -154,7 +162,15 @@
     </main>
   </div>
 
+  <!-- Placeholder pages (built out one at a time) -->
+  <section class="view view-page" data-view="mtv" hidden style="--area:#e57373"><h1><span class="area-tag">MTV</span> Mount Vernon</h1><p class="muted">Coming soon.</p></section>
+  <section class="view view-page" data-view="shd" hidden style="--area:#81c784"><h1><span class="area-tag">SHD</span> Shenandoah</h1><p class="muted">Coming soon.</p></section>
+  <section class="view view-page" data-view="chp" hidden style="--area:#4fc3f7"><h1><span class="area-tag">CHP</span> Chesapeake</h1><p class="muted">Coming soon.</p></section>
+  <section class="view view-page" data-view="jrv" hidden style="--area:#ffb74d"><h1><span class="area-tag">JRV</span> James River</h1><p class="muted">Coming soon.</p></section>
+  <section class="view view-page" data-view="comb" hidden><h1>COMB</h1><p class="muted">Coming soon.</p></section>
+
   <script src="data/pct-data.js"></script>
   <script src="assets/js/playbook.js"></script>
+  <script src="assets/js/views.js"></script>
 </body>
 </html>
