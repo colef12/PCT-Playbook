@@ -16,6 +16,19 @@ Working playbook for **Potomac TRACON (PCT)** on the VATSIM network (vZDC). Stat
 | Sectors & Frequencies | All PCT sectors with VHF/UHF/IA code, filterable by area. |
 | Position Combining · Tower Frequencies · Adjacent Facilities · Procedures · References | Quick-reference tables and rule cards. |
 
+### CHP airspace visualizer (`chp/`)
+
+Real-world Chesapeake sectors (PCT 7110.65H Ch. 5 figures on the PCT STARS video map), per BWI flow.
+
+- **Flows / views** — West · North · East · South (`1`–`4`); ALL shelves or owner BY ALT (`A`, `↑`/`↓`).
+- **Vertical profile** — hover or click-to-pin a point to see who owns every 1,000 ft from SFC to 170; click a band to jump to that altitude.
+- **Procedures** — BWI SIDs/STARs for the selected flow, with per-procedure leg lists.
+- **Live VATSIM** (`L`) — traffic tagged and coloured by the CHP sector that owns it at its position and altitude, staffed CHP positions (VATSIM + vNAS feeds), and the BWI ATIS landing runway as a flow suggestion (or auto-follow).
+- **Layers** — video map, PCT areas, airports, altitude labels, BWI range rings (`R`), traffic (`T`); choices persist. Cursor readout is magnetic bearing/distance from BWI.
+- **Deep links** — `chp/#n/alt/40/s:bwifn/p:trish5` (flow / altitude / sector / procedure).
+
+Geometry and procedures live in `chp/chp-data.js`; the page is `chp/index.html`.
+
 ### PCT Departures
 
 - **VATSIM** — scratchpads from vZDC-PCT-P-01G QRG 6–2, with the altitude and handoff sector for each SID from the area departure tables (TBL 3-1-2 / 3-2-2 / 3-3-2 / 3-4-2). Departures that transit another area (e.g. IAD SIDs through MTV) appear in that area's column with an origin tag. Hover an altitude for the sector-by-sector climb.
