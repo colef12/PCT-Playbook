@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHP Airspace — Potomac TRACON Chesapeake Sectors</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 8 14 4l14 6-2 16-12 3-10-8z' fill='%233b82f6'/></svg>">
+<style>
+  :root{ --bg:#18181b; --panel:#1f1f23; --panel2:#26262b; --line:#33333a; --text:#e4e4e7; --muted:#8b8b94; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+  header{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line);background:rgba(24,24,27,.92);backdrop-filter:blur(6px);z-index:5}
+  header h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+  header h1 span{color:var(--muted);font-weight:500}
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+  .seg button{background:none;border:0;color:var(--muted);font:600 12px/1 inherit;padding:8px 12px;border-radius:6px;cursor:pointer;white-space:nowrap}
+  .seg button small{display:block;font-weight:500;font-size:10px;margin-top:3px;opacity:.75}
+  .seg button.on{background:#3f3f46;color:#fff}
+  .seg button:hover:not(.on){color:var(--text)}
+  #altBox{display:none;align-items:center;gap:10px}
+  #altBox.on{display:flex}
+  #alt{width:170px;accent-color:#60a5fa}
+  #altVal{font:700 13px ui-monospace,Menlo,monospace;min-width:58px}
+  .spacer{flex:1}
+  .tog{display:flex;gap:12px;color:var(--muted);font-size:12px}
+  .tog label{display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+  #map{position:absolute;top:56px;left:0;right:340px;bottom:0;cursor:grab;touch-action:none}
+  #map.drag{cursor:grabbing}
+  svg{width:100%;height:100%;display:block}
+  .vm{fill:none;stroke:#52525b;stroke-width:.8;vector-effect:non-scaling-stroke;pointer-events:none;opacity:.55}
+  .bnd{fill:none;stroke:#71717a;stroke-width:1.5;stroke-dasharray:6 4;vector-effect:non-scaling-stroke;pointer-events:none}
+  .sec{stroke-width:1;vector-effect:non-scaling-stroke;transition:fill-opacity .12s}
+  .aol{fill:none;stroke:#e4e4e7;stroke-width:2;vector-effect:non-scaling-stroke;pointer-events:none;opacity:.5}
+  .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
+  .lbl .sub{font:600 10.5px ui-monospace,Menlo,monospace;opacity:.9}
+  .alb{font:600 10.5px ui-monospace,Menlo,monospace;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
+  .apt circle{fill:#d4d4d8}
+  .apt text{font:600 10px ui-monospace,Menlo,monospace;fill:#a1a1aa;paint-order:stroke;stroke:#18181b;stroke-width:3px}
+  #tip{position:absolute;pointer-events:none;background:#18181b;border:1.5px solid #52525b;border-radius:8px;padding:6px 10px;display:none;z-index:9;box-shadow:0 6px 20px rgba(0,0,0,.5);min-width:150px}
+  #tip .h{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.6px}
+  #tip .r{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font:12px ui-monospace,Menlo,monospace;padding:1px 0}
+  #tip .r b{font-family:ui-sans-serif,system-ui,sans-serif}
+  #tip .r i{font-style:normal;color:var(--muted)}
+  aside{position:absolute;top:56px;right:0;bottom:0;width:340px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:4}
+  .legend{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .chip{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;user-select:none}
+  .chip i{width:10px;height:10px;border-radius:3px;flex:none}
+  .chip.dim{opacity:.35}
+  .chip.all{justify-content:center;color:var(--muted)}
+  #detail{padding:14px;border-bottom:1px solid var(--line);display:none;max-height:52%;overflow:auto}
+  #detail.on{display:block}
+  #detail h2{margin:0 0 2px;font-size:18px}
+  #detail .st{font-size:12px;color:var(--muted);margin-bottom:10px}
+  #detail table{width:100%;border-collapse:collapse;font-size:12px}
+  #detail td{padding:4px 0;border-bottom:1px solid #2a2a30;vertical-align:top}
+  #detail td:first-child{color:var(--muted);width:96px}
+  #detail td.m{font-family:ui-monospace,Menlo,monospace}
+  .shl{display:flex;flex-wrap:wrap;gap:4px}
+  .shl span{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  .x{float:right;background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+  #search{margin:10px 14px 6px;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit}
+  #list{overflow:auto;flex:1;padding:0 6px 12px}
+  .grp{margin-top:8px}
+  .grp h3{margin:6px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  .row{display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+  .row:hover,.row.sel{background:var(--panel2)}
+  .row b{font-size:12px}
+  .row .n{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .f{font:12px ui-monospace,Menlo,monospace}
+  .row .alt{grid-column:2/4;font-size:10.5px;color:var(--muted);margin-top:-4px}
+  footer{position:absolute;left:12px;bottom:10px;font-size:10.5px;color:#71717a;z-index:3;max-width:calc(100% - 380px)}
+  .zoom{position:absolute;left:12px;top:68px;display:flex;flex-direction:column;gap:4px;z-index:3}
+  .zoom button{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;cursor:pointer}
+  @media (max-width:900px){
+    header{height:auto;flex-wrap:wrap;padding:8px 10px;gap:8px}
+    header h1 span,.tog{display:none}
+    #map{top:96px;right:0;bottom:42vh}
+    aside{top:auto;height:42vh;width:100%;border-left:0;border-top:1px solid var(--line)}
+    footer{display:none}
+    .zoom{top:106px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>CHP <span>· Chesapeake · Potomac TRACON</span></h1>
+  <div class="seg" id="flows">
+    <button data-f="W">WEST<small>BWI flow</small></button>
+    <button data-f="N">NORTH<small>BWI flow</small></button>
+    <button data-f="E">EAST<small>BWI flow</small></button>
+    <button data-f="S">SOUTH<small>BWI flow</small></button>
+  </div>
+  <div class="seg" id="modes">
+    <button data-m="ALL">ALL<small>Every shelf</small></button>
+    <button data-m="ALT">BY ALT<small>Owner at alt</small></button>
+  </div>
+  <div id="altBox"><input type="range" id="alt" min="0" max="170" step="10" value="60"><span id="altVal">6,000</span></div>
+  <div class="spacer"></div>
+  <div class="tog">
+    <label><input type="checkbox" id="tVm" checked> Video map</label>
+    <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
+    <label><input type="checkbox" id="tApt" checked> Airports</label>
+    <label><input type="checkbox" id="tAlt" checked> Altitudes</label>
+    <label><input type="checkbox" id="tLbl" checked> Labels</label>
+  </div>
+</header>
+
+<div id="map"><svg id="svg">
+  <g id="world"><g id="gVm"></g><g id="gBnd"></g><g id="gSec"></g><g id="gAol"></g></g>
+  <g id="gApt" class="apt"></g><g id="gLbl"></g>
+</svg></div>
+<div class="zoom"><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button><button id="zfit" title="Fit">⤢</button></div>
+<div id="tip"></div>
+
+<aside>
+  <div class="legend" id="legend"></div>
+  <div id="detail"></div>
+  <input id="search" placeholder="Search sector, ID, freq, altitude…">
+  <div id="list"></div>
+</aside>
+<footer id="foot"></footer>
+
+<script src="chp-data.js?v=1"></script>
+<script>
+(() => {
+const D = window.CHP_AIR, SECS = D.sectors, SH = D.shelves;
+const COL = {BUFFR:'#a3e635',BELAY:'#8b5cf6',WOOLY:'#ec4899',BWIFN:'#3b82f6',BWIFS:'#10b981',PALEO:'#ef4444',GRACO:'#f59e0b'};
+const ORDER = ['BUFFR','BELAY','WOOLY','BWIFN','BWIFS','PALEO','GRACO'];
+const APTS = [['BWI',39.1754,-76.6683,1],['MTN',39.3257,-76.4138,1],['APG',39.4662,-76.1688],['ESN',38.8042,-76.069,1],['FME',39.0854,-76.7594],
+  ['ANP',38.9429,-76.5684],['W29',38.9765,-76.3302],['W48',39.2626,-76.4326],['0W3',39.5668,-76.2024],['GAI',39.1683,-77.166],
+  ['FDK',39.4176,-77.3743,1],['DMW',39.6083,-77.0077],['MRB',39.4019,-77.9845,1],['HGR',39.7079,-77.7296,1],['DCA',38.8521,-77.0377,1],
+  ['ADW',38.8108,-76.867,1],['IAD',38.9445,-77.4558,1],['CGE',38.5393,-76.0304],['DOV',39.1295,-75.466,1]];
+
+// ---------- projection
+const LAT0 = 39.1, CX = Math.cos(LAT0*Math.PI/180), S = 100;
+const P = ([lon,lat]) => [lon*CX*S, -lat*S];
+const pathOf = rings => rings.map(r => 'M'+r.map(c => P(c).map(v=>v.toFixed(2)).join(',')).join('L')+'Z').join('');
+const lineOf = l => 'M'+l.map(c => P(c).map(v=>v.toFixed(2)).join(',')).join('L');
+const $ = s => document.querySelector(s), svg = $('#svg'), world = $('#world');
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t,a={},p) => { const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; };
+
+// ---------- altitude helpers (hundreds of feet)
+const p3 = v => String(v).padStart(3,'0');
+const fmtR = ([a,b]) => a===b ? p3(a) : (a===0 ? 'SFC' : p3(a))+'–'+p3(b);
+const fmtS = s => s.r.map(fmtR).join(' & ');
+const inAlt = (s,fl) => s.r.some(([a,b]) => a===b ? fl===a : (a===0 ? fl<=b : fl>=a && fl<=b));
+const ft = fl => fl===0 ? 'SFC' : (fl*100).toLocaleString();
+
+// ---------- state
+const st = { flow:'W', mode:'ALL', fl:60, sec:null, sel:null, q:'', k:1, tx:0, ty:0 };
+const hm = location.hash.slice(1).split('/');
+if (D.flows[(hm[0]||'').toUpperCase()]) st.flow = hm[0].toUpperCase();
+if ((hm[1]||'').toUpperCase()==='ALT'){ st.mode='ALT'; if(hm[2]!==undefined && !isNaN(+hm[2])) st.fl=+hm[2]; }
+
+// static layers
+D.vmap.forEach(l => el('path',{d:lineOf(l),class:'vm'},$('#gVm')));
+D.bdry.forEach(l => el('path',{d:lineOf(l),class:'bnd'},$('#gBnd')));
+
+// ---------- geometry
+function pip([x,y],ring){ let c=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++){ const [xi,yi]=ring[i],[xj,yj]=ring[j];
+  if(((yi>y)!==(yj>y)) && x<(xj-xi)*(y-yi)/(yj-yi)+xi) c=!c; } return c; }
+const area = r => Math.abs(r.reduce((s,[x,y],i)=>{ const [x2,y2]=r[(i+1)%r.length]; return s+x*y2-x2*y; },0)/2);
+
+// ---------- visible shelves
+let vis = [];
+function visible(){
+  return SH.filter(s => s.flows.includes(st.flow) && (st.mode!=='ALT' || inAlt(s,st.fl)))
+           .sort((a,b) => area(b.poly[0])-area(a.poly[0]));   // big first, small on top
+}
+const secOf = id => SECS.find(s=>s.id===id);
+const flowShelves = id => SH.filter(s=>s.sec===id && s.flows.includes(st.flow));
+const span = id => { const ss=flowShelves(id); if(!ss.length) return null;
+  const lo=Math.min(...ss.flatMap(s=>s.r.map(r=>r[0]))), hi=Math.max(...ss.flatMap(s=>s.r.map(r=>r[1]))); return [lo,hi]; };
+
+// ---------- render
+function render(){
+  const g=$('#gSec'); g.innerHTML=''; vis = visible();
+  vis.forEach((s,i) => { const c=COL[s.sec];
+    el('path',{d:pathOf(s.poly),class:'sec',fill:c,stroke:c,'data-i':i},g); });
+  const gA=$('#gAol'); gA.innerHTML=''; (D.outline[st.flow]||[]).forEach(r=>el('path',{d:pathOf([r]),class:'aol'},gA));
+  paint(); labels(); list(); detail();
+  document.querySelectorAll('#flows button').forEach(b=>b.classList.toggle('on',b.dataset.f===st.flow));
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===st.mode));
+  $('#altBox').classList.toggle('on',st.mode==='ALT');
+  $('#alt').value=st.fl; $('#altVal').textContent=ft(st.fl);
+  history.replaceState(null,'','#'+st.flow.toLowerCase()+(st.mode==='ALT'?'/alt/'+st.fl:''));
+}
+let hov=[];
+function paint(){
+  document.querySelectorAll('#gSec path').forEach(p=>{
+    const s=vis[p.dataset.i], focus=st.sel||st.sec, dim=focus && focus!==s.sec, isH=hov.includes(s);
+    const base = st.mode==='ALT' ? .30 : .16;
+    p.setAttribute('fill-opacity', isH ? .5 : dim ? .03 : (focus? .32 : base));
+    p.setAttribute('stroke-opacity', dim ? .12 : .75);
+    p.style.strokeWidth = isH ? 2 : 1;
+  });
+}
+
+// ---------- labels & airports (screen space)
+function labels(){
+  const gL=$('#gLbl'), gP=$('#gApt'); gL.innerHTML=''; gP.innerHTML='';
+  const focus=st.sel||st.sec, zr=st.k/(st.k0||st.k);
+  if ($('#tAlt').checked){
+    const show = vis.filter(s => (st.mode==='ALT' || focus===s.sec || (!focus && zr>1.9)) && (!focus || focus===s.sec));
+    show.forEach(s=>{ const [x,y]=scr(P(s.at)), pxA=area(s.poly[0])*S*S*CX*st.k*st.k;
+      if(pxA<220 && !(focus===s.sec && pxA>60)) return;
+      const t=el('text',{x,y:y+(st.mode==='ALT'?9:0),class:'alb',fill:COL[s.sec]},gL); t.textContent=fmtS(s); });
+  }
+  if ($('#tLbl').checked){
+    ORDER.forEach(id=>{ if(focus && focus!==id) return;
+      const ss=vis.filter(s=>s.sec===id); if(!ss.length) return;
+      const big=ss.reduce((a,b)=>area(a.poly[0])>area(b.poly[0])?a:b);
+      const [x,y]=scr(P(big.at)); const t=el('text',{x,y:y-(st.mode==='ALT'||focus===id||zr>1.9?9:0),class:'lbl',fill:COL[id]},gL);
+      t.textContent=id; });
+  }
+  if ($('#tApt').checked){
+    APTS.forEach(([id,la,lo,major])=>{ const [x,y]=scr(P([lo,la]));
+      el('circle',{cx:x,cy:y,r:major?2.6:1.8,opacity:major?1:.75},gP);
+      if(major||zr>1.5) el('text',{x:x+5,y:y-4},gP).textContent=id; });
+  }
+}
+
+// ---------- pan / zoom
+const box = () => svg.getBoundingClientRect();
+const scr = ([x,y]) => [x*st.k+st.tx, y*st.k+st.ty];
+const unscr = (sx,sy) => { const x=(sx-st.tx)/st.k, y=(sy-st.ty)/st.k; return [x/(CX*S), -y/S]; };
+function apply(){ world.setAttribute('transform',`translate(${st.tx},${st.ty}) scale(${st.k})`); labels(); }
+function fit(){
+  const bb=Object.values(D.outline).flat(2), lons=bb.map(c=>c[0]), lats=bb.map(c=>c[1]);
+  const pts=[[Math.min(...lons)-.05,Math.min(...lats)-.04],[Math.max(...lons)+.05,Math.max(...lats)+.04]].map(P), xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const b=box(), w=Math.max(...xs)-Math.min(...xs), h=Math.max(...ys)-Math.min(...ys), pad=30;
+  st.k=Math.min((b.width-2*pad)/w,(b.height-2*pad)/h); st.k0=st.k;
+  st.tx=(b.width-w*st.k)/2-Math.min(...xs)*st.k; st.ty=(b.height-h*st.k)/2-Math.min(...ys)*st.k; apply();
+}
+function zoomAt(f,cx,cy){ const k=Math.max(.3,Math.min(80,st.k*f)); f=k/st.k; st.tx=cx-(cx-st.tx)*f; st.ty=cy-(cy-st.ty)*f; st.k=k; apply(); }
+svg.addEventListener('wheel',e=>{e.preventDefault(); const b=box(); zoomAt(Math.exp(-e.deltaY*0.0015),e.clientX-b.left,e.clientY-b.top);},{passive:false});
+let drag=null, moved=false; const pts=new Map();
+svg.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,[e.clientX,e.clientY]); drag={x:e.clientX,y:e.clientY,tx:st.tx,ty:st.ty,d:pinch()}; moved=false; });
+function pinch(){ if(pts.size<2) return 0; const [a,b]=[...pts.values()]; return Math.hypot(a[0]-b[0],a[1]-b[1]); }
+window.addEventListener('pointermove',e=>{
+  if(!drag) return; if(pts.has(e.pointerId)) pts.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pts.size===2){ const d=pinch(), [a,b]=[...pts.values()], bb=box(); if(drag.d) zoomAt(d/drag.d,(a[0]+b[0])/2-bb.left,(a[1]+b[1])/2-bb.top); drag.d=d; moved=true; return; }
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y; if(Math.abs(dx)+Math.abs(dy)>3){ moved=true; $('#map').classList.add('drag'); tip.style.display='none'; }
+  if(moved){ st.tx=drag.tx+dx; st.ty=drag.ty+dy; apply(); }
+});
+window.addEventListener('pointerup',e=>{ pts.delete(e.pointerId); if(!pts.size){ drag=null; $('#map').classList.remove('drag'); setTimeout(()=>moved=false,0);} });
+$('#zin').onclick=()=>{const b=box(); zoomAt(1.4,b.width/2,b.height/2)}; $('#zout').onclick=()=>{const b=box(); zoomAt(1/1.4,b.width/2,b.height/2)}; $('#zfit').onclick=fit;
+window.addEventListener('resize',fit);
+
+// ---------- hover: list every shelf stacked under the cursor
+const tip=$('#tip');
+function hitsAt(e){ const b=box(), ll=unscr(e.clientX-b.left,e.clientY-b.top);
+  return vis.filter(s=>pip(ll,s.poly[0])).sort((a,b)=>a.r[0][0]-b.r[0][0]||a.r[0][1]-b.r[0][1]); }
+svg.addEventListener('pointermove',e=>{ if(drag&&moved) return;
+  const h=hitsAt(e); const same=h.length===hov.length&&h.every((s,i)=>s===hov[i]); hov=h; if(!same) paint();
+  if(!h.length){ tip.style.display='none'; return; }
+  tip.innerHTML=`<div class="h">${D.flows[st.flow]} flow${st.mode==='ALT'?' · at '+ft(st.fl):''}</div>`+
+    h.slice().reverse().map(s=>{ const o=secOf(s.sec); return `<div class="r"><b style="color:${COL[s.sec]}">${s.sec}</b><span>${fmtS(s)}</span><i>${o.vhf}</i></div>`; }).join('');
+  tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; });
+svg.addEventListener('pointerleave',()=>{ hov=[]; paint(); tip.style.display='none'; });
+svg.addEventListener('click',e=>{ if(moved) return; const h=hitsAt(e);
+  if(!h.length){ st.sel=null; } else { const ids=[...new Set(h.map(s=>s.sec))]; const i=ids.indexOf(st.sel); st.sel=ids[(i+1)%ids.length]; }
+  detail(); paint(); labels(); list(); });
+
+// ---------- side panel
+const leg=$('#legend');
+ORDER.forEach(id=>{ const c=document.createElement('div'); c.className='chip'; c.dataset.s=id;
+  c.innerHTML=`<i style="background:${COL[id]}"></i>${id}`; c.onclick=()=>{ st.sec=st.sec===id?null:id; st.sel=null; legendUI(); render(); }; leg.appendChild(c); });
+const all=document.createElement('div'); all.className='chip all'; all.textContent='All'; all.onclick=()=>{st.sec=null;st.sel=null;legendUI();render();}; leg.appendChild(all);
+function legendUI(){ leg.querySelectorAll('.chip[data-s]').forEach(c=>c.classList.toggle('dim',!!st.sec&&c.dataset.s!==st.sec)); }
+
+function list(){
+  const L=$('#list'); L.innerHTML=''; const q=st.q.trim().toLowerCase();
+  const inView=new Set(vis.map(s=>s.sec));
+  const ids=ORDER.filter(id=>{ const o=secOf(id);
+    if(q) return [o.id,o.stars,o.pos,o.vhf,o.role,...flowShelves(id).map(fmtS)].some(v=>String(v).toLowerCase().includes(q));
+    return inView.has(id) && (!st.sec||st.sec===id); });
+  const g=document.createElement('div'); g.className='grp';
+  g.innerHTML=`<h3>Chesapeake · ${D.flows[st.flow]} flow${st.mode==='ALT'?' · '+ft(st.fl):''}</h3>`;
+  ids.forEach(id=>{ const o=secOf(id), sp=span(id), here=st.mode==='ALT'?vis.filter(s=>s.sec===id).map(fmtS):[];
+    const r=document.createElement('div'); r.className='row'+(st.sel===id?' sel':'');
+    r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span>`+
+      `<span class="alt">${sp?(sp[0]===0?'SFC':p3(sp[0]))+'–'+p3(sp[1])+' · '+flowShelves(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+[...new Set(here)].join(', '):''}</span>`;
+    r.onclick=()=>{ st.sel=st.sel===id?null:id; detail(); paint(); labels(); list(); }; g.appendChild(r); });
+  L.appendChild(g);
+  if(!ids.length) L.innerHTML='<div style="padding:14px;color:var(--muted)">No sectors.</div>';
+}
+function detail(){
+  const d=$('#detail'), id=st.sel; if(!id){ d.className=''; d.innerHTML=''; return; }
+  const o=secOf(id), c=COL[id], ss=flowShelves(id).slice().sort((a,b)=>a.r[0][1]-b.r[0][1]||a.r[0][0]-b.r[0][0]);
+  const flowsOpen=Object.keys(D.flows).filter(f=>SH.some(s=>s.sec===id&&s.flows.includes(f))).map(f=>D.flows[f]).join(', ');
+  const sp=span(id);
+  d.className='on';
+  d.innerHTML=`<button class="x" title="Close">×</button><h2 style="color:${c}">${id}</h2>
+  <div class="st">STARS ${o.stars} · CHESAPEAKE · ${D.flows[st.flow].toUpperCase()} FLOW</div>
+  <table>
+   <tr><td>Frequency</td><td class="m">${o.vhf}</td></tr>
+   <tr><td>Position</td><td class="m">${o.stars} (symbol ${o.pos})</td></tr>
+   <tr><td>Altitudes</td><td>${sp?(sp[0]===0?'SFC':p3(sp[0]))+'–'+p3(sp[1]):'—'}</td></tr>
+   <tr><td>Role</td><td>${o.role}</td></tr>
+   <tr><td>Shelves</td><td><div class="shl">${ss.map(s=>`<span style="border-color:${c}55">${fmtS(s)}</span>`).join('')||'—'}</div></td></tr>
+   <tr><td>Flows</td><td>${flowsOpen}</td></tr>
+   <tr><td>SOP figure</td><td class="m">${[...new Set(ss.map(s=>s.fig))].join(', ')}</td></tr>
+  </table>`;
+  d.querySelector('.x').onclick=()=>{st.sel=null;detail();paint();labels();list();};
+}
+
+// ---------- controls
+document.querySelectorAll('#flows button').forEach(b=>b.onclick=()=>{ st.flow=b.dataset.f; render(); });
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.m; render(); });
+$('#alt').oninput=e=>{ st.fl=+e.target.value; render(); };
+$('#tVm').onchange=()=>{ $('#gVm').style.display=$('#tVm').checked?'':'none'; };
+$('#tBnd').onchange=()=>{ $('#gBnd').style.display=$('#tBnd').checked?'':'none'; };
+['#tApt','#tLbl','#tAlt'].forEach(i=>$(i).onchange=labels);
+$('#search').oninput=e=>{ st.q=e.target.value; list(); };
+window.addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT') return;
+  const f={'1':'W','2':'N','3':'E','4':'S'}[e.key]; if(f){ st.flow=f; render(); }
+  if(e.key==='a'||e.key==='A'){ st.mode=st.mode==='ALT'?'ALL':'ALT'; render(); }
+  if(st.mode==='ALT'&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); st.fl=Math.max(0,Math.min(170,st.fl+(e.key==='ArrowUp'?10:-10))); render(); }
+  if(e.key==='Escape'){ st.sel=null; st.sec=null; legendUI(); render(); } });
+$('#foot').textContent='Sources: '+D.source+'. Altitudes in hundreds of feet (AOB = surface up to). Shelves traced from the SOP figures, so expect up to ~0.2 NM edge error; tiny slivers under ~0.3 NM may be missing. For flight simulation only.';
+
+render(); fit();
+})();
+</script>
+</body>
+</html>

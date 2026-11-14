@@ -338,43 +338,6 @@ mark { background: rgba(255,183,77,.3); color: inherit; border-radius: 2px; }
 .view-page h1 { display: flex; align-items: center; gap: 12px; font-size: 22px; margin: 0 0 8px; }
 .view-page h1 .area-tag { font-size: 15px; padding: 4px 10px; }
 @media (max-width: 900px) { .views { margin: 0 10px; gap: 4px; } .view-btn { font-size: 11px; padding: 7px 4px; letter-spacing: .02em; } .brand-sub { display: none; } }
-/* CHP airspace page */
-.chp-page { padding: 18px 24px; }
-.chp-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
-.chp-head h1 { margin: 0; }
-.chp-tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.chp-body { display: grid; grid-template-columns: 1fr 380px; gap: 14px; height: calc(100vh - var(--topbar) - 96px); min-height: 520px; }
-.chp-map-wrap { position: relative; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-#chp-map { position: absolute; inset: 0; background: #0b0f14; }
-.chp-ov { image-rendering: auto; }
-.chp-probe { position: absolute; left: 12px; bottom: 12px; z-index: 500; background: rgba(16,21,29,.94); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; min-width: 230px; }
-.chp-probe[hidden] { display: none; }
-.probe-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 3px 0; }
-.probe-row .freq { color: var(--accent); margin-left: auto; }
-.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--sc); }
-.chp-side { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
-.chp-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
-.chp-sec { border-left: 4px solid var(--sc); transition: opacity .15s; }
-.chp-sec.off { opacity: .45; }
-.chp-sec-head { display: flex; align-items: center; gap: 10px; }
-.chp-name { font: 700 16px var(--mono); color: var(--sc, var(--text)); }
-.chp-id { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
-.chp-freq { margin-left: auto; font-size: 16px; font-weight: 700; color: var(--accent); }
-.chp-tog { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-.chp-tog input { accent-color: var(--sc); }
-.chp-meta { margin-top: 4px; }
-.chp-narr { margin-top: 6px; line-height: 1.45; color: var(--text); }
-.chp-apts { margin-top: 6px; font-family: var(--mono); color: var(--muted); }
-.chp-apts b { color: var(--accent-2); }
-.chp-pacp { margin-top: 6px; color: var(--warn); line-height: 1.4; }
-.chp-zoom { margin-top: 8px; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 4px; padding: 3px 8px; cursor: pointer; }
-.chp-zoom:hover { color: var(--text); border-color: var(--muted); }
-.chp-sub { font: 600 11px var(--sans); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
-.chp-combine { font: 13px/2 var(--mono); }
-.ctile { display: inline-block; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--sc); color: var(--sc); background: color-mix(in srgb, var(--sc) 14%, transparent); font-weight: 700; }
-.chp-src { margin: 0; }
-.chp-pt i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #e6edf3; }
-.chp-pt.nav i { border-radius: 0; transform: rotate(45deg); background: #9fb3c8; }
-.chp-pt span { position: absolute; left: 6px; top: -16px; font: 600 11px var(--mono); color: #e6edf3; text-shadow: 0 0 3px #000, 0 0 3px #000; white-space: nowrap; }
-.leaflet-container { font-family: var(--sans); }
-@media (max-width: 1000px) { .chp-body { grid-template-columns: 1fr; height: auto; } .chp-map-wrap { height: 70vh; } }
+/* CHP airspace page (embedded standalone explorer) */
+.chp-frame { position: relative; height: calc(100vh - var(--topbar)); }
+.chp-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #18181b; }
