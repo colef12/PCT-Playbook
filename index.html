@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="assets/css/playbook.css">
 </head>
 <body>
@@ -165,12 +166,37 @@
   <!-- Placeholder pages (built out one at a time) -->
   <section class="view view-page" data-view="mtv" hidden style="--area:#e57373"><h1><span class="area-tag">MTV</span> Mount Vernon</h1><p class="muted">Coming soon.</p></section>
   <section class="view view-page" data-view="shd" hidden style="--area:#81c784"><h1><span class="area-tag">SHD</span> Shenandoah</h1><p class="muted">Coming soon.</p></section>
-  <section class="view view-page" data-view="chp" hidden style="--area:#4fc3f7"><h1><span class="area-tag">CHP</span> Chesapeake</h1><p class="muted">Coming soon.</p></section>
+  <section class="view view-page chp-page" data-view="chp" hidden style="--area:#4fc3f7">
+    <div class="chp-head">
+      <h1><span class="area-tag">CHP</span> Chesapeake Airspace</h1>
+      <div class="chp-tools">
+        <div class="seg-group" id="chp-flow" title="BWI flow — BWIFS, GRACO and WOOLY change shape">
+          <button class="seg on" data-flow="e">East flow</button>
+          <button class="seg" data-flow="w">West flow</button>
+        </div>
+        <label class="small"><input type="checkbox" id="chp-area"> Area outline</label>
+        <label class="small"><input type="checkbox" id="chp-pts" checked> Airports/fixes</label>
+        <span class="muted small">vZDC-PCT-P-01G · altitudes shown as <b>ceiling/floor</b> (hundreds of ft)</span>
+      </div>
+    </div>
+    <div class="chp-body">
+      <div class="chp-map-wrap"><div id="chp-map"></div><div id="chp-probe" class="chp-probe" hidden></div></div>
+      <aside class="chp-side">
+        <div id="chp-sectors"></div>
+        <div class="chp-card chp-sfra" id="chp-sfra"></div>
+        <div class="chp-card"><div class="chp-sub">Consolidation</div><div id="chp-combine" class="chp-combine"></div></div>
+        <p class="muted small chp-src">Shelves are the SOP airspace figures, georeferenced to the vNAS CHP Base map. Click the map to list which sectors own that spot. For flight simulation use only.</p>
+      </aside>
+    </div>
+  </section>
   <section class="view view-page" data-view="jrv" hidden style="--area:#ffb74d"><h1><span class="area-tag">JRV</span> James River</h1><p class="muted">Coming soon.</p></section>
   <section class="view view-page" data-view="comb" hidden><h1>COMB</h1><p class="muted">Coming soon.</p></section>
 
   <script src="data/pct-data.js"></script>
   <script src="assets/js/playbook.js"></script>
   <script src="assets/js/views.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="data/chp-airspace.js"></script>
+  <script src="assets/js/chp.js"></script>
 </body>
 </html>
