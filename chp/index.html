@@ -36,6 +36,17 @@
   .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .lbl .sub{font:600 10.5px ui-monospace,Menlo,monospace;opacity:.9}
   .alb{font:600 10.5px ui-monospace,Menlo,monospace;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
+  .pr{fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round;opacity:.9}
+  .pr.SID{stroke:#fb923c} .pr.STAR{stroke:#22d3ee} .pr.dep{stroke-dasharray:4 4}
+  .pr.dim{opacity:.12} .pr.hi{stroke-width:3;opacity:1}
+  .prh{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke;cursor:pointer}
+  .pfx{font:600 10px ui-monospace,Menlo,monospace;paint-order:stroke;stroke:#18181b;stroke-width:3px;pointer-events:none}
+  .pfx.SID{fill:#fdba74} .pfx.STAR{fill:#67e8f9}
+  .pnm{font:700 11px ui-monospace,Menlo,monospace;paint-order:stroke;stroke:#18181b;stroke-width:3.5px;pointer-events:none}
+  .pnm.SID{fill:#fb923c} .pnm.STAR{fill:#22d3ee}
+  #procBox{display:flex;gap:6px;align-items:center}
+  #procBox select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 6px;font:12px inherit;max-width:190px}
+  .row .ty{font:700 10px ui-monospace,Menlo,monospace;border-radius:4px;padding:1px 5px;justify-self:start}
   .apt circle{fill:#d4d4d8}
   .apt text{font:600 10px ui-monospace,Menlo,monospace;fill:#a1a1aa;paint-order:stroke;stroke:#18181b;stroke-width:3px}
   #tip{position:absolute;pointer-events:none;background:#18181b;border:1.5px solid #52525b;border-radius:8px;padding:6px 10px;display:none;z-index:9;box-shadow:0 6px 20px rgba(0,0,0,.5);min-width:150px}
@@ -97,8 +108,11 @@
     <button data-m="ALT">BY ALT<small>Owner at alt</small></button>
   </div>
   <div id="altBox"><input type="range" id="alt" min="0" max="170" step="10" value="60"><span id="altVal">6,000</span></div>
+  <div id="procBox"><select id="pSel" title="Procedure"></select></div>
   <div class="spacer"></div>
   <div class="tog">
+    <label><input type="checkbox" id="tSid" checked> <span style="color:#fb923c">SIDs</span></label>
+    <label><input type="checkbox" id="tStar" checked> <span style="color:#22d3ee">STARs</span></label>
     <label><input type="checkbox" id="tVm" checked> Video map</label>
     <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
     <label><input type="checkbox" id="tApt" checked> Airports</label>
@@ -108,8 +122,8 @@
 </header>
 
 <div id="map"><svg id="svg">
-  <g id="world"><g id="gVm"></g><g id="gBnd"></g><g id="gSec"></g><g id="gAol"></g></g>
-  <g id="gApt" class="apt"></g><g id="gLbl"></g>
+  <g id="world"><g id="gVm"></g><g id="gBnd"></g><g id="gSec"></g><g id="gAol"></g><g id="gPr"></g></g>
+  <g id="gApt" class="apt"></g><g id="gPfx"></g><g id="gLbl"></g>
 </svg></div>
 <div class="zoom"><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button><button id="zfit" title="Fit">⤢</button></div>
 <div id="tip"></div>
@@ -122,7 +136,7 @@
 </aside>
 <footer id="foot"></footer>
 
-<script src="chp-data.js?v=4"></script>
+<script src="chp-data.js?v=5"></script>
 <script>
 (() => {
 const D = window.CHP_AIR, SECS = D.sectors, SHL = D.shelves;
@@ -144,7 +158,8 @@ const fmtS=s=>s.r.map(fmtR).join(' & ');
 const inAlt=(s,fl)=>s.r.some(([a,b])=>a===b?fl===a:(a===0?fl<=b:fl>=a&&fl<=b));
 const top=s=>Math.max(...s.r.map(r=>r[1]));
 const ft=fl=>fl===0?'SFC':(fl*100).toLocaleString();
-const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0};
+const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0,proc:null};
+const PR=D.procs, PFX=PR.fixes, BWI=[-76.6683,39.1754], PC={SID:'#fb923c',STAR:'#22d3ee'};
 const hm=location.hash.slice(1).split('/');
 if(D.flows[(hm[0]||'').toUpperCase()]) st.flow=hm[0].toUpperCase();
 if((hm[1]||'').toUpperCase()==='ALT'){ st.mode='ALT'; if(hm[2]!==undefined&&!isNaN(+hm[2])) st.fl=+hm[2]; }
@@ -189,11 +204,44 @@ function render(){
   if(mesh) el('path',{d:mesh,class:'mesh'},gA);
   for(const k in shelf) el('path',{d:shelf[k],class:'shb',stroke:COL[k],'data-s':k},gA);
   for(const k in bord) el('path',{d:bord[k],class:'sbd',stroke:COL[k],'data-s':k},gA);
-  paint(); labels(); list(); detail();
+  procs(); paint(); labels(); list(); detail();
   document.querySelectorAll('#flows button').forEach(b=>b.classList.toggle('on',b.dataset.f===st.flow));
   document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===st.mode));
   $('#altBox').classList.toggle('on',st.mode==='ALT'); $('#alt').value=st.fl; $('#altVal').textContent=ft(st.fl);
   history.replaceState(null,'','#'+st.flow.toLowerCase()+(st.mode==='ALT'?'/alt/'+st.fl:''));
+}
+// ---- SIDs / STARs (only the selected BWI flow)
+let prHov=null;
+const prShow=p=>p.flows[st.flow] && $(p.t==='SID'?'#tSid':'#tStar').checked && (!st.proc||st.proc===p.id);
+const prList=()=>PR.procs.filter(p=>p.flows[st.flow]);
+function procs(){
+  const g=$('#gPr'); g.innerHTML='';
+  if(st.proc && !PR.procs.some(p=>p.id===st.proc&&p.flows[st.flow])) st.proc=null;
+  const sel=$('#pSel'), cur=st.proc||'';
+  sel.innerHTML='<option value="">All procedures · '+D.flows[st.flow]+'</option>'+['STAR','SID'].map(t=>`<optgroup label="${t}s">`+prList().filter(p=>p.t===t).map(p=>`<option value="${p.id}">${p.id} · RWY ${p.flows[st.flow].rw}</option>`).join('')+'</optgroup>').join('');
+  sel.value=cur;
+  PR.procs.filter(prShow).forEach(p=>{ const f=p.flows[st.flow]; let d=f.paths.map(ps=>lineOf(ps.map(n=>PFX[n]))).join('');
+    if(p.t==='SID') el('path',{d:lineOf([BWI,PFX[f.paths[0][0]]]),class:'pr SID dep','data-p':p.id},g);
+    el('path',{d,class:'pr '+p.t,'data-p':p.id},g);
+    const h=el('path',{d,class:'prh','data-p':p.id},g);
+    h.addEventListener('pointerenter',e=>{ prHov=p.id; paintProcs(); showPrTip(p,e); });
+    h.addEventListener('pointermove',e=>showPrTip(p,e));
+    h.addEventListener('pointerleave',()=>{ prHov=null; paintProcs(); tip.style.display='none'; });
+  });
+  paintProcs();
+}
+function showPrTip(p,e){ const f=p.flows[st.flow], fx=new Set(f.paths.flat());
+  tip.innerHTML=`<div class="h">${p.t==='SID'?'Departure':'Arrival'} · ${p.apt} · RWY ${f.rw}</div><div class="r"><b style="color:${PC[p.t]}">${p.id}</b><span>${p.sec}</span><i></i></div><div class="r"><i>${p.from}</i><span></span><i>${fx.size} fixes</i></div>`;
+  tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; }
+function paintProcs(){ const on=prHov||st.proc; document.querySelectorAll('#gPr path.pr').forEach(e=>{ e.classList.toggle('hi',!!on&&e.dataset.p===on); e.classList.toggle('dim',!!prHov&&e.dataset.p!==prHov); }); }
+function procLabels(){
+  const g=$('#gPfx'); g.innerHTML=''; const zr=st.k/(st.k0||st.k); const vis=PR.procs.filter(prShow); if(!vis.length) return;
+  const showFix=st.proc||zr>1.6, seen=new Set();
+  vis.forEach(p=>{ const f=p.flows[st.flow];
+    if(showFix && $('#tLbl').checked) f.paths.flat().forEach(n=>{ if(seen.has(n)) return; seen.add(n); const [x,y]=scr(P(PFX[n]));
+      el('path',{d:`M${x},${y-3.5}L${x+3.2},${y+2.2}L${x-3.2},${y+2.2}Z`,fill:PC[p.t]},g); el('text',{x:x+5,y:y-4,class:'pfx '+p.t},g).textContent=n; });
+    const end=p.t==='SID'?f.paths[0][Math.min(2,f.paths[0].length-1)]:f.paths[0][0]; const [x,y]=scr(P(PFX[end]));
+    el('text',{x:x+6,y:y+12,class:'pnm '+p.t},g).textContent=p.id; });
 }
 let hov=-1;
 function paint(){
@@ -229,6 +277,7 @@ const box=()=>svg.getBoundingClientRect();
 const scr=([x,y])=>[x*st.k+st.tx,y*st.k+st.ty];
 const unscr=(sx,sy)=>{const x=(sx-st.tx)/st.k,y=(sy-st.ty)/st.k;return [x/(CX*S),-y/S];};
 function apply(){ world.setAttribute('transform',`translate(${st.tx},${st.ty}) scale(${st.k})`); labels(); }
+const _labels=labels; labels=function(){ _labels(); procLabels(); };
 function fit(){ const bb=Object.values(D.faces).flat().flatMap(f=>f.poly[0]); const lons=bb.map(c=>c[0]),lats=bb.map(c=>c[1]);
   const pts=[[Math.min(...lons)-.04,Math.min(...lats)-.03],[Math.max(...lons)+.04,Math.max(...lats)+.03]].map(P),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
   const b=box(),w=Math.max(...xs)-Math.min(...xs),h=Math.max(...ys)-Math.min(...ys),pad=30;
@@ -247,14 +296,14 @@ $('#zin').onclick=()=>{const b=box(); zoomAt(1.4,b.width/2,b.height/2)}; $('#zou
 window.addEventListener('resize',fit);
 const tip=$('#tip');
 function faceAt(e){ const b=box(), ll=unscr(e.clientX-b.left,e.clientY-b.top); return faces.findIndex(f=>inFace(ll,f)); }
-svg.addEventListener('pointermove',e=>{ if(drag&&moved) return; const i=faceAt(e); if(i!==hov){ hov=i; paint(); }
+svg.addEventListener('pointermove',e=>{ if(drag&&moved) return; if(prHov) return; const i=faceAt(e); if(i!==hov){ hov=i; paint(); }
   if(i<0){ tip.style.display='none'; return; }
   const ss=faces[i].st.map(j=>SHL[j]).slice().sort((a,b)=>top(b)-top(a));
   tip.innerHTML=`<div class="h">${D.flows[st.flow]} flow${st.mode==='ALT'?' · at '+ft(st.fl):''}</div>`+ss.map(s=>{ const o=SECS.find(x=>x.id===s.sec), on=st.mode!=='ALT'||inAlt(s,st.fl);
     return `<div class="r" style="opacity:${on?1:.4}"><b style="color:${COL[s.sec]}">${s.sec}</b><span>${fmtS(s)}</span><i>${o.vhf}</i></div>`; }).join('');
   tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; });
 svg.addEventListener('pointerleave',()=>{hov=-1; paint(); tip.style.display='none';});
-svg.addEventListener('click',e=>{ if(moved) return; const i=faceAt(e);
+svg.addEventListener('click',e=>{ if(moved) return; if(e.target.classList.contains('prh')){ const id=e.target.dataset.p; st.proc=st.proc===id?null:id; render(); return; } const i=faceAt(e);
   if(i<0) st.sel=null; else { const ids=[...new Set(faces[i].st.map(j=>SHL[j].sec))]; const k=ids.indexOf(st.sel); st.sel=ids[(k+1)%ids.length]; }
   render(); });
 const leg=$('#legend');
@@ -273,6 +322,16 @@ function list(){
     r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?(sp[0]===0?'SFC':p3(sp[0]))+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}</span>`;
     r.onclick=()=>{ st.sel=st.sel===id?null:id; render(); }; g.appendChild(r); });
   L.appendChild(g); if(!ids.length) L.innerHTML='<div style="padding:14px;color:var(--muted)">No sectors.</div>';
+  const ps=prList().filter(p=>!q||[p.id,p.t,p.sec,p.from,...p.flows[st.flow].paths.flat()].some(v=>String(v).toLowerCase().includes(q)));
+  if(!ps.length) return;
+  const g2=document.createElement('div'); g2.className='grp'; g2.innerHTML=`<h3>BWI procedures · ${D.flows[st.flow]} flow</h3>`;
+  ps.sort((a,b)=>a.t.localeCompare(b.t)*-1||a.id.localeCompare(b.id)).forEach(p=>{ const f=p.flows[st.flow], r=document.createElement('div');
+    r.className='row'+(st.proc===p.id?' sel':'');
+    r.innerHTML=`<b style="color:${PC[p.t]}">${p.id}</b><span class="n">${p.sec}</span><span class="f">RWY ${f.rw}</span><span class="alt"><span class="ty" style="background:${PC[p.t]}22;color:${PC[p.t]}">${p.t}</span> ${p.from}</span>`;
+    r.onclick=()=>{ st.proc=st.proc===p.id?null:p.id; render(); };
+    r.onmouseenter=()=>{ prHov=p.id; paintProcs(); }; r.onmouseleave=()=>{ prHov=null; paintProcs(); };
+    g2.appendChild(r); });
+  L.appendChild(g2);
 }
 function detail(){
   const d=$('#detail'), id=st.sel; if(!id){ d.className=''; d.innerHTML=''; return; }
@@ -293,13 +352,15 @@ $('#alt').oninput=e=>{ st.fl=+e.target.value; render(); };
 $('#tVm').onchange=()=>{ $('#gVm').style.display=$('#tVm').checked?'':'none'; };
 $('#tBnd').onchange=()=>{ $('#gBnd').style.display=$('#tBnd').checked?'':'none'; };
 ['#tApt','#tLbl','#tAlt'].forEach(i=>$(i).onchange=labels);
+['#tSid','#tStar'].forEach(i=>$(i).onchange=render);
+$('#pSel').onchange=e=>{ st.proc=e.target.value||null; render(); };
 $('#search').oninput=e=>{ st.q=e.target.value; list(); };
 window.addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT') return;
   const f={'1':'W','2':'N','3':'E','4':'S'}[e.key]; if(f){ st.flow=f; render(); }
   if(e.key==='a'||e.key==='A'){ st.mode=st.mode==='ALT'?'ALL':'ALT'; render(); }
   if(st.mode==='ALT'&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); st.fl=Math.max(0,Math.min(170,st.fl+(e.key==='ArrowUp'?10:-10))); render(); }
-  if(e.key==='Escape'){ st.sel=null; st.sec=null; legendUI(); render(); } });
-$('#foot').textContent='Sources: '+D.source+'. Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude. Flight simulation only.';
+  if(e.key==='Escape'){ st.sel=null; st.sec=null; st.proc=null; legendUI(); render(); } });
+$('#foot').textContent='Sources: '+D.source+'; SIDs/STARs from CRC NavData + Vice PCT runway-transition maps (W/N depart 28, E/S depart 15R; STAR runway legs W→28, N→33L, E→10, S→15R). Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude. Flight simulation only.';
 render(); fit();
 })();
 </script>
