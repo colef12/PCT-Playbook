@@ -83,9 +83,9 @@
     if (built) { map.invalidateSize(); return; }
     built = true;
     map = L.map("chp-map", { zoomSnap: 0.25, preferCanvas: true }).setView(C.center, C.zoom);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", { subdomains: "abcd", maxZoom: 13,
-      attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", { subdomains: "abcd", maxZoom: 13, opacity: 0.45, pane: "shadowPane" }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16,
+      attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ" }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, opacity: 0.6, pane: "shadowPane" }).addTo(map);
     cards(); points(); render();
     map.on("click", probe);
     document.querySelectorAll("#chp-flow .seg").forEach((b) => b.addEventListener("click", () => {
