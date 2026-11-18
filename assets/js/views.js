@@ -9,8 +9,8 @@
     pages.forEach((p) => { p.hidden = p.dataset.view !== v; });
     btns.forEach((b) => b.classList.toggle("on", b.dataset.view === v));
     document.body.dataset.view = v;
-    const fr = document.getElementById('chp-iframe');
-    if (v === 'chp' && fr && !fr.getAttribute('src')) fr.setAttribute('src', fr.dataset.src);
+    const fr = document.getElementById(v + '-iframe');          // area pages (mtv/, chp/) load on first view
+    if (fr && !fr.getAttribute('src')) fr.setAttribute('src', fr.dataset.src);
     try { localStorage.setItem("pct-view", v); } catch (e) {}
     const url = new URL(location.href);
     if (v === "dashboard") url.searchParams.delete("view"); else url.searchParams.set("view", v);
