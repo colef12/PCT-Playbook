@@ -135,16 +135,19 @@
       const id = D.depRouteChains?.[area]?.[route] || (typeof D.depAlt?.[area]?.[sp] === "object" ? D.depAlt[area][sp].chain : null);
       return id ? D.depChains?.[id] : null;
     };
+    // Only steps with a controlling application: an altitude, a request condition, or an explicit keep flag.
+    const ctrlSteps = (c) => (c?.steps || []).filter((st) => st.alt || st.req || st.keep);
     const altLabelHtml = (c, title) => {
-      if (!c) return '<span class="dep-alt none">—</span>';
-      const steps = (c.steps || []).map((st, i) => `
+      const cs = ctrlSteps(c);
+      if (!cs.length) return '<span class="dep-alt none">—</span>';
+      const steps = cs.map((st, i) => `
         <li><span class="ch-n">${i + 1}</span>
           <div><div class="ch-hop">${tilesHtml(st.from)}<span class="ch-arrow">▶</span>${tilesHtml(st.to)}</div>
             ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
             ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
       return `<span class="dep-alt has-chain alt-label" tabindex="0">ALT
         <div class="chain-pop" role="tooltip">
-          <div class="ch-head"><b>${esc(title || c.title || "")}</b><span>${(c.steps || []).length} handoffs</span></div>
+          <div class="ch-head"><b>${esc(title || c.title || "")}</b><span>${cs.length} handoff${cs.length === 1 ? "" : "s"}</span></div>
           <ol>${steps}</ol>
           ${c.ref ? `<div class="ch-ref">${esc(c.ref)}</div>` : ""}
         </div></span>`;
@@ -163,7 +166,7 @@
           const routes = groups.get(sp);
           const lines = routes.map((r) => {
             const c = realChain(a, sp, r);
-            if (c) done++;
+            if (ctrlSteps(c).length) done++;
             return `<div class="dep-line"><div class="dep-routes">${esc(r)}</div>${altLabelHtml(c, r)}</div>`;
           });
           return `<div class="dep-row v" data-q="${esc((sp + " " + routes.join(" ")).toUpperCase())}">
