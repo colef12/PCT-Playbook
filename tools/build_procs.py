@@ -27,14 +27,31 @@ IAD_ARR = {'N': '01C', 'S': '19C'}                         # matches RW01C or RW
 IAD_DEP = {'N': '01C', 'S': '19C'}
 NONE = {'A': ''}                                           # satellites: no runway legs
 
+# DoD procedures are not in the FAA CIFP. Fix sequence from CRC NavData (CANNY1, cycle 2611).
+MANUAL = {
+  ('KDOV', 'SID', 'CANNY1'): dict(com=['CANNY', 'TROTZ', 'WONCE', 'TERPZ'], enr={
+    'FLASK': ['TERPZ', 'LITME', 'HIRCK', 'BUTRZ', 'CLTCH', 'KERRK', 'TEEMS', 'FLASK'],
+    'GLANC': ['TERPZ', 'LITME', 'HIRCK', 'SCRAM', 'DANOO', 'WALCE', 'GLANC'],
+    'JERES': ['TERPZ', 'LINSE', 'JERES'],
+    'MAULS': ['TERPZ', 'LITME', 'HIRCK', 'BUTRZ', 'CLTCH', 'KERRK', 'MAULS'],
+    'MCRAY': ['TERPZ', 'LINSE', 'BUFFR', 'MCRAY'],
+    'MELTN': ['TERPZ', 'LITME', 'HIRCK', 'JDUBB', 'CASLY', 'MELTN'],
+    'OTTTO': ['TERPZ', 'FOXHL', 'OTTTO'],
+    'RAMAY': ['TERPZ', 'FOXHL', 'RAMAY'],
+    'RRSIN': ['TERPZ', 'LITME', 'HIRCK', 'JDUBB', 'TYPNZ', 'SCORN', 'RRSIN']}),
+}
+
 AREAS = {
   'chp': dict(
     out='chp/chp-data.js', var='CHP_AIR', ref=BWI,
     recip={'28': '10', '15R': '33L'},
     want=[('KBWI', 'STAR', None, 'flows', BWI_ARR, False), ('KBWI', 'SID', None, 'flows', BWI_DEP, False),
           ('KDCA', 'STAR', ['CLIPR', 'SKILS', 'DEALE'], 'dflows', DCA_RW, False),
-          ('KADW', 'STAR', ['SPISY'], 'dflows', DCA_RW, False)],
+          ('KADW', 'STAR', ['SPISY'], 'dflows', DCA_RW, False),
+          # KDOV CANNY# (Dover AFB): no runway legs, shown in every BWI flow
+          ('KDOV', 'SID', ['CANNY'], 'flows', {'W': '', 'N': '', 'E': '', 'S': ''}, False)],
     captions={
+      ('KDOV', 'CANNY'): ('GRACO → WOOLY → MTV‑FLUKY / BUFFR', 'GRACO→WOOLY AOA 120 · →FLUKY climb via SID 170 · →BUFFR AOA 120 ↑160'),
       'ANTHM': ('BUFFR → WOOLY', 'ZDC 05 (LDN)'), 'EMI': ('BUFFR → WOOLY', 'ZDC 05 (LDN) · non‑RNAV/props'),
       'TRISH': ('WOOLY', 'ZNY 25 / PHL'), 'MIIDY': ('GRACO', 'ZDC 51 (CAS)'), 'RAVNN': ('MTV‑KRANT → BWIFS', 'ZDC 20/37'),
       'TERPZ': ('WOOLY → MTV‑TYSON', 'CLTCH/SCRAM/JDUBB · 170'), 'FOXHL': ('WOOLY → MTV‑TYSON', 'RAMAY/OTTTO · 170'),
@@ -54,9 +71,11 @@ AREAS = {
           ('KIAD', 'STAR', None, 'iflows', IAD_ARR, True), ('KIAD', 'SID', None, 'iflows', IAD_DEP, True),
           # satellites: only procedures no primary airport above already carries
           ('KHEF', 'SID', None, 'sflows', NONE, True), ('KJYO', 'SID', ['PTOMC'], 'sflows', NONE, True),
-          ('KGAI', 'STAR', ['TRSTN'], 'sflows', NONE, True), ('KMRB', 'SID', ['TRIXY'], 'sflows', NONE, True)],
+          ('KGAI', 'STAR', ['TRSTN'], 'sflows', NONE, True), ('KMRB', 'SID', ['TRIXY'], 'sflows', NONE, True),
+          ('KDOV', 'SID', ['CANNY'], 'sflows', NONE, True)],
     # (sector path, handoff / where it comes from) — PCT 7110.65H CHG 1 Chapter 8 hand-off tables
     captions={
+      ('KDOV', 'CANNY'): ('CHP‑GRACO → WOOLY → FLUKY', 'From CHP‑WOOLY climbing via SID to 170 · FLUKY turns west · ZDC 05/60'),
       ('KDCA', 'CAPSS'): ('OJAAY → DCAFR', 'ZDC → OJAAY · DCAFR at 60 (S) / 70 (N) (T8-11-2)'),
       ('KDCA', 'IRONS'): ('TAPPA → OJAAY → DCAFR', 'TAPPA 80 · DCAFR at 60 on downwind (S) / 70 (N)'),
       ('KDCA', 'FRDMM'): ('LURAY → OJAAY → DCAFR', 'Descend via to 60 (N) / 80 (S) at OJAAY · DCAFR at 60'),
@@ -216,6 +235,20 @@ def main():
             if not fl: continue
             p = {'id': pid, 't': kind, 'apt': apt[1:], 'sec': cap[0], 'from': cap[1], 'tr': enr, key: fl}
             procs.append(p)
+    for apt, kind, ids, key, rwmap, cross in A['want']:
+        for (a, k, pid), m in MANUAL.items():
+            base = re.sub(r'\d+$', '', pid)
+            if a != apt or k != kind or (ids and base not in ids): continue
+            allf = m['com'] + [n for q in m['enr'].values() for n in q]
+            miss = [n for n in allf if not fix(n)]
+            if miss: print('MANUAL', pid, 'missing fixes', miss); continue
+            e = [(n, q) for n, q in sorted(m['enr'].items()) if not cross or touches(q)]
+            o = {'rw': '', 'paths': [m['com']] + [q for _, q in e], 'x': {}, 'lb': m['com'][-1], 'coded': False, 'first': m['com'][0]}
+            if arp.get(apt): o['der'] = list(arp[apt])
+            if cross: o['tr'] = [n for n, _ in e]
+            cap = CAP.get((apt, base)) or CAP.get(base) or ('', '')
+            procs.append({'id': pid, 't': kind, 'apt': apt[1:], 'sec': cap[0], 'from': cap[1], 'tr': sorted(m['enr']),
+                          'src': 'CRC NavData (DoD SID, not in FAA CIFP)', key: {f: o for f in rwmap}})
     keys = ('flows', 'dflows', 'bflows', 'iflows', 'sflows')
     pfl = lambda p: next(p[k] for k in keys if k in p)
     used = {n for p in procs for fl in pfl(p).values() for path in fl['paths'] for n in path}

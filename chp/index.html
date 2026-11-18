@@ -55,14 +55,14 @@
   .lbl{font:700 12px ui-sans-serif,system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .alb{font:600 10.5px var(--mono);text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:#18181b;stroke-width:3px;stroke-linejoin:round}
   .pr{fill:none;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round;opacity:.9}
-  .pr.SID{stroke:#ffffff} .pr.STAR{stroke:#22d3ee} .pr.DCA{stroke:#c4b5fd;stroke-dasharray:9 4;stroke-width:1.3} .pr.dep{stroke-dasharray:4 4}
+  .pr.SID{stroke:#ffffff} .pr.STAR{stroke:#22d3ee} .pr.DCA{stroke:#c4b5fd;stroke-dasharray:9 4;stroke-width:1.3} .pr.DOV{stroke:#fb923c} .pr.dep{stroke-dasharray:4 4}
   .pr.dim{opacity:.12} .pr.hi{stroke-width:3;opacity:1}
   .prh{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke;cursor:pointer}
   .pfx{font:600 10px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3px;pointer-events:none}
-  .pfx.SID{fill:#f4f4f5} .pfx.STAR{fill:#67e8f9} .pfx.DCA{fill:#ddd6fe}
+  .pfx.SID{fill:#f4f4f5} .pfx.STAR{fill:#67e8f9} .pfx.DCA{fill:#ddd6fe} .pfx.DOV{fill:#fdba74}
   .pfx .rx{font-weight:500;opacity:.75}
   .pnm{font:700 11px var(--mono);paint-order:stroke;stroke:#18181b;stroke-width:3.5px;pointer-events:none}
-  .pnm.SID{fill:#ffffff} .pnm.STAR{fill:#22d3ee} .pnm.DCA{fill:#c4b5fd}
+  .pnm.SID{fill:#ffffff} .pnm.STAR{fill:#22d3ee} .pnm.DCA{fill:#c4b5fd} .pnm.DOV{fill:#fb923c}
   .apt circle{fill:#d4d4d8}
   .apt text{font:600 10px var(--mono);fill:#a1a1aa;paint-order:stroke;stroke:#18181b;stroke-width:3px}
   .pin{fill:none;stroke:#fff;stroke-width:1.4;pointer-events:none}
@@ -180,6 +180,7 @@
   <label><input type="checkbox" id="tSid" checked> <span style="color:#ffffff">SIDs</span></label>
   <label><input type="checkbox" id="tStar" checked> <span style="color:#22d3ee">STARs</span></label>
   <label><input type="checkbox" id="tDca" checked> <span style="color:#c4b5fd">DCA / ADW STARs</span> <span class="mini" id="dcaFlow"><button data-d="N" title="DCA/ADW landing north (01)">N</button><button data-d="S" title="DCA/ADW landing south (19)">S</button></span></label>
+  <label><input type="checkbox" id="tDov" checked> <span style="color:#fb923c">DOV CANNY# SID</span></label>
   <h4>Map</h4>
   <label><input type="checkbox" id="tVm" checked> Video map <kbd>V</kbd></label>
   <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
@@ -270,11 +271,11 @@ const posTxt=ll=>{ const r=fromBwi(ll); return `BWI ${p3(r.brg)}°/${r.nm.toFixe
 
 // ---------- state (flow/mode/alt/sector/procedure in the URL hash, layers in localStorage)
 const st={flow:'W',mode:'ALL',fl:60,sec:null,sel:null,q:'',k:1,tx:0,ty:0,proc:null,pin:null,ac:null,live:true,dca:'S'};
-const PR=D.procs, PFX=PR.fixes, PC={SID:'#ffffff',STAR:'#22d3ee',DCA:'#c4b5fd'};
-const cat=p=>p.apt==='BWI'?p.t:'DCA';                              // DCA = DCA/ADW STARs that cross CHP
+const PR=D.procs, PFX=PR.fixes, PC={SID:'#ffffff',STAR:'#22d3ee',DCA:'#c4b5fd',DOV:'#fb923c'};
+const cat=p=>p.apt==='BWI'?p.t:p.apt==='DOV'?'DOV':'DCA';                              // DCA = DCA/ADW STARs that cross CHP
 const pf=p=>p.dflows?p.dflows[st.dca]:p.flows[st.flow];            // legs for the current BWI flow (or DCA flow)
 const DCAF={N:'North',S:'South'};
-const TOG=['tSid','tStar','tDca','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tBwi','tFol'];
+const TOG=['tSid','tStar','tDca','tDov','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tBwi','tFol'];
 const on=id=>$('#'+id).checked;
 const store={ get(k,d){ try{ const v=localStorage.getItem('pct.chp.'+k); return v===null?d:JSON.parse(v); }catch(_){ return d; } },
               set(k,v){ try{ localStorage.setItem('pct.chp.'+k,JSON.stringify(v)); }catch(_){} } };
@@ -339,17 +340,17 @@ function render(){
 
 // ---------- SIDs / STARs (only the selected BWI flow)
 let prHov=null;
-const prShow=p=>pf(p) && on({SID:'tSid',STAR:'tStar',DCA:'tDca'}[cat(p)]) && (!st.proc||st.proc===p.id);
+const prShow=p=>pf(p) && on({SID:'tSid',STAR:'tStar',DCA:'tDca',DOV:'tDov'}[cat(p)]) && (!st.proc||st.proc===p.id);
 const prList=()=>PR.procs.filter(pf);
-const rwTxt=f=>'RWY '+f.rw+(f.coded?'':' · no runway legs');
+const rwTxt=f=>f.rw?'RWY '+f.rw+(f.coded?'':' · no runway legs'):'no runway legs';
 function procs(){
   const g=$('#gPr'); g.innerHTML='';
   if(st.proc && !PR.procs.some(p=>p.id===st.proc&&pf(p))) st.proc=null;
   const sel=$('#pSel'), cur=st.proc||'';
-  sel.innerHTML='<option value="">All procedures · '+D.flows[st.flow]+'</option>'+[['STAR','BWI STARs'],['SID','BWI SIDs'],['DCA','DCA / ADW STARs · '+DCAF[st.dca]]].map(([t,n])=>`<optgroup label="${n}">`+prList().filter(p=>cat(p)===t).map(p=>`<option value="${p.id}">${p.id} · ${p.apt} ${pf(p).rw}</option>`).join('')+'</optgroup>').join('');
+  sel.innerHTML='<option value="">All procedures · '+D.flows[st.flow]+'</option>'+[['STAR','BWI STARs'],['SID','BWI SIDs'],['DCA','DCA / ADW STARs · '+DCAF[st.dca]],['DOV','Dover AFB SIDs']].map(([t,n])=>`<optgroup label="${n}">`+prList().filter(p=>cat(p)===t).map(p=>`<option value="${p.id}">${p.id} · ${p.apt} ${pf(p).rw}</option>`).join('')+'</optgroup>').join('');
   sel.value=cur;
   PR.procs.filter(prShow).forEach(p=>{ const f=pf(p); const d=f.paths.map(ps=>lineOf(ps.map(n=>PFX[n]))).join('');
-    if(p.t==='SID') el('path',{d:lineOf([f.der||BWI,PFX[f.first]]),class:'pr SID dep','data-p':p.id},g);
+    if(p.t==='SID') el('path',{d:lineOf([f.der||BWI,PFX[f.first]]),class:'pr '+(cat(p)==='DOV'?'DOV':'SID')+' dep','data-p':p.id},g);
     el('path',{d,class:'pr '+cat(p),'data-p':p.id},g);
     const h=el('path',{d,class:'prh','data-p':p.id},g);
     h.addEventListener('pointerenter',e=>{ prHov=p.id; paintProcs(); showPrTip(p,e); });
@@ -497,11 +498,11 @@ function list(){
       r.innerHTML=`<b style="color:${COL[id]}">${id}</b><span class="n">${o.stars} · ${o.role}</span><span class="f">${o.vhf}</span><span class="alt">${sp?lo3(sp[0])+'–'+p3(sp[1])+' · '+shelvesOf(id).length+' shelves':'Not open this flow'}${here.length?' · here: '+here.join(', '):''}${st.mode==='ALT'&&!here.length&&sp?' · nothing at '+ft(st.fl):''}${n?` · <span style="color:${COL[id]}">${n} acft</span>`:''}${live.staff[id]?' · <span style="color:#fff">online</span>':''}</span>`;
       r.onclick=()=>{ st.sel=st.sel===id?null:id; render(); }; g.appendChild(r); }); }
   const pall=prList().filter(p=>!q||[p.id,p.t,p.apt,p.sec,p.from,...pf(p).paths.flat()].some(v=>String(v).toLowerCase().includes(q)));
-  [[p=>cat(p)!=='DCA',`BWI procedures · ${D.flows[st.flow]} flow`],[p=>cat(p)==='DCA',`DCA / ADW arrivals through CHP · DCA ${DCAF[st.dca]}`]].forEach(([test,title])=>{ const ps=pall.filter(test);
+  [[p=>cat(p)==='SID'||cat(p)==='STAR',`BWI procedures · ${D.flows[st.flow]} flow`],[p=>cat(p)==='DCA',`DCA / ADW arrivals through CHP · DCA ${DCAF[st.dca]}`],[p=>cat(p)==='DOV',`Dover AFB departures through CHP`]].forEach(([test,title])=>{ const ps=pall.filter(test);
   if(ps.length){ const g=grp(title);
     ps.sort((a,b)=>b.t.localeCompare(a.t)||a.id.localeCompare(b.id)).forEach(p=>{ const f=pf(p), c=PC[cat(p)], r=document.createElement('div');
       r.className='row'+(st.proc===p.id?' sel':'');
-      r.innerHTML=`<b style="color:${c}">${p.id}</b><span class="n">${p.sec}</span><span class="f">${cat(p)==='DCA'?p.apt+' ':'RWY '}${f.rw}</span><span class="alt"><span class="ty" style="background:${c}22;color:${c}">${p.t}</span> ${p.from}</span>`;
+      r.innerHTML=`<b style="color:${c}">${p.id}</b><span class="n">${p.sec}</span><span class="f">${cat(p)==='DCA'?p.apt+' '+f.rw:cat(p)==='DOV'?p.apt:'RWY '+f.rw}</span><span class="alt"><span class="ty" style="background:${c}22;color:${c}">${p.t}</span> ${p.from}</span>`;
       r.onclick=()=>{ st.proc=st.proc===p.id?null:p.id; render(); };
       r.onmouseenter=()=>{ prHov=p.id; paintProcs(); }; r.onmouseleave=()=>{ prHov=null; paintProcs(); };
       g.appendChild(r); }); } });
@@ -533,7 +534,7 @@ function detail(){
     <table><tr><td>Sectors</td><td>${p.sec}</td></tr><tr><td>${p.t==='SID'?'Exit / top':'From'}</td><td>${p.from}</td></tr>
     ${p.tr.length?`<tr><td>Transitions</td><td class="m">${p.tr.join(' · ')}</td></tr>`:''}
     <tr><td>Legs</td><td class="rte">${f.paths.map(l=>l.map(n=>n+(f.x[n]?` <u>${f.x[n]}</u>`:'')).join(' <em>›</em> ')).join('<br>')}</td></tr>
-    <tr><td>Source</td><td>FAA CIFP ${PR.cycle}; restrictions in hundreds of ft (≥ at or above, ≤ at or below), K = knots</td></tr></table>`; }
+    <tr><td>Source</td><td>${p.src?p.src+" · cycle "+PR.cycle+" · fixes only, no altitude restrictions":"FAA CIFP "+PR.cycle+"; restrictions in hundreds of ft (≥ at or above, ≤ at or below), K = knots"}</td></tr></table>`; }
   const a=st.ac&&live.ac.find(x=>x.cs===st.ac);
   if(a){ const c=a.own?COL[a.own]:'#d4d4d8';
     h+=`<h2 style="color:${c};${h?'margin-top:14px':''}">${esc(a.cs)}<button class="x" data-x="ac" title="Close">×</button></h2>
@@ -638,7 +639,7 @@ window.addEventListener('keydown',e=>{ if(/INPUT|SELECT|TEXTAREA/.test(e.target.
   if(k==='?') $('#bHelp').click();
   if(k==='escape'){ st.sel=null; st.sec=null; st.proc=null; st.pin=null; st.ac=null; $$('.pop').forEach(p=>p.classList.remove('on')); render(); } });
 
-$('#src').textContent='Sectors: '+D.source+'. SIDs/STARs from the FAA CIFP (cycle '+PR.cycle+'): every BWI SID and STAR with the runway transition for the flow (W/N depart 28, E/S depart 15R; arrivals W→28, N→33L, E→10, S→15R), plus the DCA/ADW STARs that cross CHP (CLIPR, SKILS, DEALE, SPISY) with their own North/South switch. Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude; where shelves overlap the lower ceiling owns. Live traffic, ATIS and staffing from the VATSIM and vNAS data feeds, refreshed every 15 s; bearings from BWI are magnetic. Flight simulation only.';
+$('#src').textContent='Sectors: '+D.source+'. SIDs/STARs from the FAA CIFP (cycle '+PR.cycle+'): every BWI SID and STAR with the runway transition for the flow (W/N depart 28, E/S depart 15R; arrivals W→28, N→33L, E→10, S→15R), plus the DCA/ADW STARs that cross CHP (CLIPR, SKILS, DEALE, SPISY) with their own North/South switch, and the Dover AFB CANNY# SID (DoD, not in the CIFP — fix sequence from CRC NavData). Edges snapped to the real video-map vertices; altitudes in hundreds of feet (AOB = surface up to). ALL view colors each area by the highest shelf over it; BY ALT colors by the owner at that altitude; where shelves overlap the lower ceiling owns. Live traffic, ATIS and staffing from the VATSIM and vNAS data feeds, refreshed every 15 s; bearings from BWI are magnetic. Flight simulation only.';
 $('#foot').textContent='PCT 7110.65H CHG 1 sector figures on the real PCT STARS video map · flight simulation only · press ? for keys and sources';
 layerVis(); render(); if(!fitted) fit(); setLive(st.live);
 })();

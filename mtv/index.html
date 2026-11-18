@@ -181,6 +181,7 @@
   <label><input type="checkbox" id="tXb" checked> <span style="color:#c4b5fd">BWI</span> <span class="mini" id="bwiFlow"><button data-x="W" title="BWI west (28)">W</button><button data-x="N" title="BWI north (33L)">N</button><button data-x="E" title="BWI east (10)">E</button><button data-x="S" title="BWI south (15R)">S</button></span></label>
   <label><input type="checkbox" id="tXi"> <span style="color:#c4b5fd">IAD</span> <span class="mini" id="iadFlow"><button data-x="N" title="IAD north (01C/01R)">N</button><button data-x="S" title="IAD south (19C/19L)">S</button></span></label>
   <label><input type="checkbox" id="tXs"> <span style="color:#c4b5fd">Satellites</span> <small style="color:var(--muted)">HEF · JYO · GAI · MRB</small></label>
+  <label><input type="checkbox" id="tXd" checked> <span style="color:#c4b5fd">DOV CANNY# SID</span></label>
   <h4>Map</h4>
   <label><input type="checkbox" id="tVm" checked> Video map <kbd>V</kbd></label>
   <label><input type="checkbox" id="tBnd" checked> PCT areas</label>
@@ -281,9 +282,9 @@ const pf=p=>p.flows?p.flows[st.flow]:p.bflows?p.bflows[st.xb]:p.iflows?p.iflows[
 const pk=p=>(p.flows&&p.apt==='DCA')?p.id:p.id+'-'+p.apt;           // unique key: FRDMM7 serves DCA and ADW, CLTCH3 DCA and IAD
 const PK=Object.fromEntries(PR.procs.map(p=>[pk(p),p]));
 const XL={bflows:'BWI',iflows:'IAD',sflows:'Satellite'}, BWIF={W:'West',N:'North',E:'East',S:'South'}, IADF={N:'North',S:'South'};
-const xTog=p=>({bflows:'tXb',iflows:'tXi',sflows:'tXs'})[lay(p)];
+const xTog=p=>p.apt==='DOV'?'tXd':({bflows:'tXb',iflows:'tXi',sflows:'tXs'})[lay(p)];
 const xFlow=p=>p.bflows?'BWI '+BWIF[st.xb]:p.iflows?'IAD '+IADF[st.xi]:'';
-const TOG=['tSid','tStar','tXb','tXi','tXs','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tOwn','tFol'];
+const TOG=['tSid','tStar','tXb','tXi','tXs','tXd','tVm','tBnd','tApt','tAlt','tLbl','tRng','tTrf','tOwn','tFol'];
 const on=id=>$('#'+id).checked;
 const store={ get(k,d){ try{ const v=localStorage.getItem('pct.mtv.'+k); return v===null?d:JSON.parse(v); }catch(_){ return d; } },
               set(k,v){ try{ localStorage.setItem('pct.mtv.'+k,JSON.stringify(v)); }catch(_){} } };
@@ -544,7 +545,7 @@ function detail(){
     <table><tr><td>Sectors</td><td>${secTxt(p)}</td></tr><tr><td>${p.t==='SID'?'Exit / top':'From'}</td><td>${p.from||'—'}</td></tr>
     ${p.tr.length?`<tr><td>Transitions</td><td class="m">${p.tr.join(' · ')}</td></tr>`:''}
     <tr><td>Legs</td><td class="rte">${f.paths.map(l=>l.map(n=>n+(f.x[n]?` <u>${f.x[n]}</u>`:'')).join(' <em>›</em> ')).join('<br>')}</td></tr>
-    <tr><td>Source</td><td>FAA CIFP ${PR.cycle}; restrictions in hundreds of ft (≥ at or above, ≤ at or below), K = knots</td></tr></table>`; }
+    <tr><td>Source</td><td>${p.src?p.src+" · cycle "+PR.cycle+" · fixes only, no altitude restrictions":"FAA CIFP "+PR.cycle+"; restrictions in hundreds of ft (≥ at or above, ≤ at or below), K = knots"}</td></tr></table>`; }
   const a=st.ac&&live.ac.find(x=>x.cs===st.ac);
   if(a){ const c=a.own?COL[a.own]:'#d4d4d8';
     h+=`<h2 style="color:${c};${h?'margin-top:14px':''}">${esc(a.cs)}<button class="x" data-x="ac" title="Close">×</button></h2>
