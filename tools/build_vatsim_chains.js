@@ -9,33 +9,33 @@ const S = (from, to, alt, note, req) => { const o = { from, to }; if (alt) o.alt
 const TY_Z32_MTV = S("MTV - TYSON", "ZDC32", "FL210", "SHD/MTV in trail as one. ORF arrivals at 150.");
 const TY_Z32_CHP = S("MTV - TYSON", "ZDC32", "FL230", "From CHP (BWI deps).");
 const TY_Z05_CHP = S("MTV - TYSON", "ZDC05", "FL230", "From CHP (BWI deps).");
-const TY_BUF = (n) => S("MTV - TYSON", "CHP - BUFFR", "AOA 100 ↑170", `${n} Control for turns NW of AML R-050. (TBL 4-1-4a lists AOA 110.)`);
+const TY_BUF = () => S("MTV - TYSON", "CHP - BUFFR", "AOA 100 ↑170", "On SID or direct HORTO. Control for turns NW of AML R-050. (TBL 4-1-4a lists AOA 110.)");
 const BUF_Z05 = S("CHP - BUFFR", "ZDC05", "170", "On course.");
-const TY_LUR = S("MTV - TYSON", "MTV - LURAY", "AOA 120 ↑170", "MTV deps via RAMAY/OTTTO (non-RNAV via LDN, J134, J149).");
+const TY_LUR = S("MTV - TYSON", "MTV - LURAY", "AOA 120 ↑170", "Jet. From MTV via RAMAY/OTTTO; non-RNAV via LDN, J134, J149, etc.");
 const LUR_Z05 = S("MTV - LURAY", "ZDC05", "170", "All deps via RAMAY/OTTTO.");
 const KR_Z17_SWN = S("MTV - KRANT", "ZDC17", "FL190", "DCA/SHD via SWANN. In trail as one, on the route.");
-const KR_Z17_DCR = S("MTV - KRANT", "ZDC17", "170", "DCA/SHD via DOCTR. PHL arrivals to CHP-PALEO at 110.");
+const KR_Z17_DCR = S("MTV - KRANT", "ZDC17", "170", "DCA/SHD via DOCTR. In trail as one, on the route. PHL arrivals to CHP-PALEO at 110.");
 const KR_Z17_AGA = S("MTV - KRANT", "ZDC17", "190", "AGARD not listed in TBL 4-13-5b. 190 = East gate top (TBL 6-4-11).");
-const KR_Z12 = S("MTV - KRANT", "ZDC12", "FL190", "DCA/SHD/CHP via COLIN/AMEEE. (ADW via COLIN/AMEEE: 170.)");
+const KR_Z12 = S("MTV - KRANT", "ZDC12", "FL190", "DCA/SHD/CHP via COLIN/AMEEE. ORF arrivals at 140. (ADW via COLIN/AMEEE: 170.)");
 const AS_TY = S("SHD - ASPER", "MTV - TYSON", "100", "Direct BUTRZ (CLTCH#) / POOCH (SCRAM#) / HAFNR (JDUBB#). TYSON control for turns leaving 80.");
-const BA_AS_GAB = S("SHD - BARIN", "SHD - ASPER", "↑50", "GABBE# on SID (non-RNAV on vector).");
-const BA_AS_HII = S("SHD - BARIN", "SHD - ASPER", "↑30", "HIICH#. ASPER control for turns.");
+const BA_AS_GAB = S("SHD - BARIN", "SHD - ASPER", "↑50", "GABBE# on SID, non-RNAV on vector.");
+const BA_AS_HII = S("SHD - BARIN", "SHD - ASPER", "↑30", "HIICH#. Control for turns.");
 const BA_AS_ARS = S("SHD - BARIN", "SHD - ASPER", "", "ARSNL# climb via SID (TBL 3-4-10). BARIN→ASPER handoff altitude not listed in P-01G.");
 const AS_LUR = S("SHD - ASPER", "MTV - LURAY", "100", "On SID or direct RNLDI/BUNZZ.");
-const AS_LUR_HII = S("SHD - ASPER", "MTV - LURAY", "100", "HIICH# RAMAY/OTTTO, on SID.");
-const AS_BUF = S("SHD - ASPER", "CHP - BUFFR", "110", "Direct IDORE (JERES#) / HAYGR (MCRAY#) to join SID.");
-const AS_BUF_HII = S("SHD - ASPER", "CHP - BUFFR", "110", "HIICH# on SID. BUFFR has control for turns.");
-const AS_BUF_MRB = S("SHD - ASPER", "CHP - BUFFR", "110", "Direct MRB.", "Req. 110–170");
+const AS_LUR_HII = S("SHD - ASPER", "MTV - LURAY", "100", "HIICH# RAMAY/OTTTO.");
+const AS_BUF = S("SHD - ASPER", "CHP - BUFFR", "110", "Direct IDORE (JERES#) / HAYGR (MCRAY#) to join SID. BUFFR has control for turns to right leaving 80 (TBL 4-1-4a).");
+const AS_BUF_HII = S("SHD - ASPER", "CHP - BUFFR", "110", "HIICH# MCRAY/JERES. BUFFR has control for turns. BUFFR has control for turns to right leaving 80 (TBL 4-1-4a).");
+const AS_BUF_MRB = S("SHD - ASPER", "CHP - BUFFR", "110", "Direct MRB. BUFFR has control for turns to right leaving 80 (TBL 4-1-4a).", "Req. 110–170 (4-1-4a: req AOA 110)");
 const MU_BUF = S("SHD - MULRR", "CHP - BUFFR", "110", "FDK is a MULRR satellite (TBL 3-4-10). No MULRR→BUFFR row; 110 per TBL 3-4-2 (SHD + SATs).");
-const AS_WOO = S("SHD - ASPER", "CHP - WOOLY", "110", "Direct RAZZA to join. WOOLY has control for turns. (100 Tprop / AOB 70 prop)");
+const AS_WOO = S("SHD - ASPER", "CHP - WOOLY", "110", "Direct RAZZA to join. WOOLY has control for turns and climb to 110. (100 Tprop / AOB 70 prop)");
 const AS_WOO_HII = S("SHD - ASPER", "CHP - WOOLY", "110", "HIICH# on SID. WOOLY has control for turn. (TBL 4-17-5b lists BUFFR; 4-4-5a and 3-4-2 list WOOLY.)");
-const AS_WOO_NR = S("SHD - ASPER", "CHP - WOOLY", "AOB 110", "Non-RNAV: vector to join radial, WOOLY control for turns. AOB 100 Tprop / AOB 70 prop.");
+const AS_WOO_NR = S("SHD - ASPER", "CHP - WOOLY", "AOB 110", "Non-RNAV: vector to join radial. WOOLY has control for turns. AOB 100 Tprop / AOB 70 prop (TBL 4-17-5b lists AOB 90 Tprop).");
 const WOO_Z17 = S("CHP - WOOLY", "ZDC17", "150", "MTV/SHD via WOOLY.");
 const AS_KR = S("SHD - ASPER", "MTV - KRANT", "100", "On SID, direct RIGNZ to join.");
-const WOO_TY = S("CHP - WOOLY", "MTV - TYSON", "↑170", "Climb via SID to 170. TYSON control for left turns on contact.");
+const WOO_TY = S("CHP - WOOLY", "MTV - TYSON", "↑170", "Climb via SID to 170, on SID. TYSON control for left turns on contact.");
 const GR_KR = S("CHP - GRACO", "MTV - KRANT", "AOA 110 ↑140", "On SID or direct CONLE. Control for west turns on contact.");
 const KR_TY = S("MTV - KRANT", "MTV - TYSON", "FL190", "FIXET# on SID. TYSON control for turns on contact.");
-const WOO_BUF = S("CHP - WOOLY", "CHP - BUFFR", "AOA 120 ↑160", "LINSE# climb via SID. Control for turns and climbs west of WOOLY.");
+const WOO_BUF = S("CHP - WOOLY", "CHP - BUFFR", "AOA 120 ↑160", "LINSE# climb via SID. Control for turns and climbs west of WOOLY intersection.");
 
 const C = (top, ref, ...steps) => ({ top, ref, steps });
 function chain(area, [sp, proc, gate, apt]) {
@@ -55,10 +55,10 @@ function chain(area, [sp, proc, gate, apt]) {
       ? C("170", "TBL 3-4-10 · 3-4-2 · 4-1-4b", MU_BUF, BUF_Z05)
       : C("170", "TBL 4-4-5b · 4-1-4b", WOO_BUF, BUF_Z05);
     // ---------- DCA / ADW (MTV) ----------
-    case "HORTO#": return C("170", "TBL 3-3-2 · 4-16-6b · 4-1-4b", TY_BUF("On SID or direct HORTO."), BUF_Z05);
+    case "HORTO#": return C("170", "TBL 3-3-2 · 4-16-6b · 4-1-4b", TY_BUF(), BUF_Z05);
     case "LINCN#": return /OTTTO|RAMAY/.test(g)
       ? C("170", "TBL 4-16-6b · 4-14-4 · 6-4-11", TY_LUR, LUR_Z05)
-      : C("170", "TBL 3-3-2 · 4-16-6b · 4-1-4b", TY_BUF("On SID."), BUF_Z05);
+      : C("170", "TBL 3-3-2 · 4-16-6b · 4-1-4b", TY_BUF(), BUF_Z05);
     case "REBLL#": case "WYNGS#": return C("170", "TBL 4-16-6b · 4-14-4 · 6-4-11", TY_LUR, LUR_Z05);
     case "CLTCH#": case "JDUBB#": case "SCRAM#": case "JEFSN#":
       return apt === "IAD" ? C("210", "TBL 3-4-2 · 4-17-5b · 4-16-6b", AS_TY, TY_Z32_MTV)
