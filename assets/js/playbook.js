@@ -155,6 +155,8 @@
     };
 
     const spHtml = (sp) => esc(sp).replace(/\//g, "/<wbr>");
+    // Searchable text of a handoff popup (what the ALT hover shows).
+    const chainQ = (steps, ref) => (steps || []).map((st) => [st.from, st.to, st.alt, st.req, st.note].filter(Boolean).join(" ")).join(" ") + (ref ? " " + ref : "");
 
     function renderReal() {
       return order.filter((a) => D.departures[a]).map((a) => {
@@ -168,9 +170,10 @@
           const lines = routes.map((r) => {
             const c = realChain(a, sp, r);
             if (ctrlSteps(c).length) done++;
-            return `<div class="dep-line"><div class="dep-routes">${esc(r)}</div>${altLabelHtml(c, r)}</div>`;
+            const cq = ctrlSteps(c).length ? chainQ(ctrlSteps(c), c.ref) : "";
+            return `<div class="dep-line" data-q="${esc(r.toUpperCase())}" data-cq="${esc(cq.toUpperCase())}"><div class="dep-routes">${esc(r)}</div>${altLabelHtml(c, r)}</div>`;
           });
-          return `<div class="dep-row v" data-q="${esc((sp + " " + routes.join(" ")).toUpperCase())}">
+          return `<div class="dep-row v" data-q="${esc(sp.toUpperCase())}">
               <span class="dep-sp">${spHtml(sp)}</span><div class="dep-lines">${lines.join("")}</div></div>`;
         }).join("");
         const spn = Math.max(3, ...sps.map((x) => Math.max(Math.min(x.length, 8), ...x.split("/").map((t, i, arr) => t.length + (i < arr.length - 1 ? 1 : 0)))));
@@ -198,11 +201,10 @@
             <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>
             ${sps.map((sp) => {
               const rows = groups.get(sp);
-              const q = (sp + " " + rows.map((r) => r.slice(1, 7).join(" ") + (r[7]?.from ? " " + r[7].from + " TRANSIT" : "")).join(" ")).toUpperCase();
-              return `<div class="dep-row v" data-q="${esc(q)}">
+              return `<div class="dep-row v" data-q="${esc(sp.toUpperCase())}">
                 <span class="dep-sp">${spHtml(sp)}</span>
                 <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note, ch]) => `
-                  <div class="dep-line${ch?.from ? " transit" : ""}">
+                  <div class="dep-line${ch?.from ? " transit" : ""}" data-q="${esc([proc, gate, apt, alt, to, note, ch?.from ? ch.from + " TRANSIT" : ""].filter(Boolean).join(" ").toUpperCase())}" data-cq="${esc(ch?.steps?.length ? chainQ(ch.steps, ch.ref).toUpperCase() : "")}">
                     <div class="dep-routes">${ch?.from ? `<span class="area-tag from" ${areaStyle(ch.from)} title="Departs ${esc(ch.from)} area">${esc(ch.from)}</span> ` : ""}<b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>
                       ${note ? `<div class="dep-rnote">${esc(note)}</div>` : ""}</div>
                     ${ch?.steps?.length ? chainHtml({ title: `${proc} ${gate} · ${apt}`, top: ch.top ?? alt, shown: alt, ref: ch.ref, steps: ch.steps }, to) : altHtml(alt, to)}
@@ -224,7 +226,18 @@
     }
     function filter() {
       const q = $("#dep-search").value.trim().toUpperCase();
-      $$("#dep-cols .dep-row:not(.dep-th)").forEach((r) => { r.hidden = !!q && !r.dataset.q.includes(q); });
+      // Match SP, route text, or the handoff popup text (notes/requirements). Popup-only hits flag the ALT label.
+      $$("#dep-cols .dep-row:not(.dep-th)").forEach((r) => {
+        const spHit = !!q && r.dataset.q.includes(q);
+        let any = false;
+        $$(".dep-line", r).forEach((l) => {
+          const vis = !!q && l.dataset.q.includes(q), pop = !!q && !vis && (l.dataset.cq || "").includes(q);
+          l.hidden = !!q && !spHit && !vis && !pop;
+          l.classList.toggle("q-pop", pop);
+          if (vis || pop) any = true;
+        });
+        r.hidden = !!q && !spHit && !any;
+      });
     }
     $("#dep-search").addEventListener("input", filter);
     $("#dep-hide-jrv").addEventListener("change", (e) => {
