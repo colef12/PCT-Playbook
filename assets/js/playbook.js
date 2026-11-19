@@ -121,7 +121,8 @@
             ${st.alt ? `<div class="ch-alt">${esc(st.alt)}${st.req ? ` <em>${esc(st.req)}</em>` : ""}</div>` : ""}
             ${st.note ? `<div class="ch-note">${esc(st.note)}</div>` : ""}</div></li>`).join("");
       const top = c.top ? esc(c.top) : '<span class="none">—</span>';
-      return `<span class="dep-alt has-chain" tabindex="0">${top}${to ? `<small class="to-tiles">${tilesHtml(toLabel(to), true)}</small>` : ""}
+      const shown = c.shown ? esc(c.shown) : top; // cell value (handoff alt); popup header keeps the PCT top
+      return `<span class="dep-alt has-chain" tabindex="0">${shown}${to ? `<small class="to-tiles">${tilesHtml(toLabel(to), true)}</small>` : ""}
         <div class="chain-pop" role="tooltip">
           <div class="ch-head"><b>${esc(c.title || "")}</b><span>${c.top ? "Top " + esc(c.top) : "Top n/a"}</span></div>
           <ol>${steps}</ol>
@@ -187,9 +188,9 @@
         const dep = D.vatsimDepartures[a];
         const groups = new Map();
         dep.rows.forEach((r) => { if (!groups.has(r[0])) groups.set(r[0], []); groups.get(r[0]).push(r); });
-        groups.forEach((g) => g.sort((x, y) => (x[7] ? 1 : 0) - (y[7] ? 1 : 0)));
+        groups.forEach((g) => g.sort((x, y) => (x[7]?.from ? 1 : 0) - (y[7]?.from ? 1 : 0)));
         const sps = [...groups.keys()].sort((x, y) => x.localeCompare(y));
-        const nTransit = dep.rows.filter((r) => r[7]).length;
+        const nTransit = dep.rows.filter((r) => r[7]?.from).length;
         const spn = Math.max(3, ...sps.map((x) => Math.max(Math.min(x.length, 8), ...x.split("/").map((t, i, arr) => t.length + (i < arr.length - 1 ? 1 : 0)))));
         return `<div class="dep-col" data-area="${a}" style="--area:${areaColor[a] || "var(--muted)"};--spn:${spn}">
           ${head(a, `${sps.length} SP · ${dep.rows.length} routes${nTransit ? ` (${nTransit} transit)` : ""}`, `vZDC ${esc(dep.ref)}`)}
@@ -197,14 +198,14 @@
             <div class="dep-row dep-th"><span>SP</span><span>SID · Gate · Apt</span><span>ALT</span></div>
             ${sps.map((sp) => {
               const rows = groups.get(sp);
-              const q = (sp + " " + rows.map((r) => r.slice(1, 7).join(" ") + (r[7] ? " " + r[7].from + " TRANSIT" : "")).join(" ")).toUpperCase();
+              const q = (sp + " " + rows.map((r) => r.slice(1, 7).join(" ") + (r[7]?.from ? " " + r[7].from + " TRANSIT" : "")).join(" ")).toUpperCase();
               return `<div class="dep-row v" data-q="${esc(q)}">
                 <span class="dep-sp">${spHtml(sp)}</span>
                 <div class="dep-lines">${rows.map(([, proc, gate, apt, alt, to, note, ch]) => `
-                  <div class="dep-line${ch ? " transit" : ""}">
+                  <div class="dep-line${ch?.from ? " transit" : ""}">
                     <div class="dep-routes">${ch?.from ? `<span class="area-tag from" ${areaStyle(ch.from)} title="Departs ${esc(ch.from)} area">${esc(ch.from)}</span> ` : ""}<b>${esc(proc)}</b> ${esc(gate)} <span class="dep-apt">${esc(apt)}</span>
                       ${note ? `<div class="dep-rnote">${esc(note)}</div>` : ""}</div>
-                    ${ch ? chainHtml({ title: `${proc} ${gate} · ${apt}`, top: alt, ref: ch.ref, steps: ch.steps }, to) : altHtml(alt, to)}
+                    ${ch?.steps?.length ? chainHtml({ title: `${proc} ${gate} · ${apt}`, top: ch.top ?? alt, shown: alt, ref: ch.ref, steps: ch.steps }, to) : altHtml(alt, to)}
                   </div>`).join("")}</div>
               </div>`;
             }).join("")}
